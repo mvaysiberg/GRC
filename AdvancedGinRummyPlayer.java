@@ -1,35 +1,76 @@
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class AdvancedGinRummyPlayer implements GinRummyPlayer{
-
+	private int playerNum;
+	private int startingPlayerNum;
+	private int randomSetSize;
+	private ArrayList<Card> hand;
+	private ArrayList<Card> opponentHand;
+	private HashSet<Card> seenCards;
+	private Card lastDrawnCard;
 	@Override
 	public void startGame(int playerNum, int startingPlayerNum, Card[] cards) {
 		// TODO Auto-generated method stub
+		this.playerNum = playerNum;
+		this.startingPlayerNum = startingPlayerNum;
+		randomSetSize = 31;
+		hand = new ArrayList<Card>();
 		
+		for (Card c: cards) { //hand is unsorted, can use a smarter copy algorithm to make it sorted
+			hand.add(c);
+		}
+		
+		opponentHand = new ArrayList<Card>();
+		seenCards = new HashSet<Card>();
+		
+		for (Card c: cards) {
+			seenCards.add(c);
+		}
 	}
 
 	@Override
 	public boolean willDrawFaceUpCard(Card card) {
 		// TODO Auto-generated method stub
+		//logic to decide whether to take the card from the discarded set
+		
+		//return true;
+		randomSetSize--;
 		return false;
 	}
 
 	@Override
 	public void reportDraw(int playerNum, Card drawnCard) {
 		// TODO Auto-generated method stub
-		
+		if (playerNum == this.playerNum) { //Reports what we drew
+			hand.add(drawnCard); //card is inserted to the end of the array, can use a binary search to find where to insert into the sorted array
+			seenCards.add(drawnCard);
+			lastDrawnCard = drawnCard;
+		}else {
+			if (drawnCard == null) { //opponent drew from random set, no knowledge of what the card is
+				randomSetSize--;
+			}else { //opponent has picked up the card from the discarded set, we have already seen this card before
+				opponentHand.add(drawnCard);
+				
+			}
+		}
 	}
 
 	@Override
 	public Card getDiscard() {
 		// TODO Auto-generated method stub
+		//choose which card to discard, cannot be lastDrawnCard
 		return null;
 	}
 
 	@Override
 	public void reportDiscard(int playerNum, Card discardedCard) {
 		// TODO Auto-generated method stub
-		
+		if (playerNum != this.playerNum) { //reports the card that the opponent discarded
+			seenCards.add(discardedCard);
+			if (opponentHand.contains(discardedCard))
+				opponentHand.remove(discardedCard);
+		} //update prediction model???
 	}
 
 	@Override
