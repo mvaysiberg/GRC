@@ -16,17 +16,33 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		this.startingPlayerNum = startingPlayerNum;
 		randomSetSize = 31;
 		hand = new ArrayList<Card>();
+		seenCards = new HashSet<Card>();
 		
-		for (Card c: cards) { //hand is unsorted, can use a smarter copy algorithm to make it sorted
-			hand.add(c);
+		for (Card c: cards) { //hand is  sorted, and all cards in hand added to seen hashset
+			seenCards.add(c);
+			if(hand.isEmpty())
+				hand.add(c);
+			else {
+				int left = 0;
+				int right = hand.size() -1;
+				int middle = -1;
+				while (left <= right) {
+					middle = (left + right)/2;
+					if (hand.get(middle).rank == c.rank) 
+						break;
+					else if (hand.get(middle).rank < c.rank)
+						left = middle + 1;
+					else
+						right = middle -1;
+				}
+				
+					hand.add(middle, c);
+			}
 		}
 		
 		opponentHand = new ArrayList<Card>();
-		seenCards = new HashSet<Card>();
 		
-		for (Card c: cards) {
-			seenCards.add(c);
-		}
+			
 	}
 
 	@Override
@@ -43,14 +59,46 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	public void reportDraw(int playerNum, Card drawnCard) {
 		// TODO Auto-generated method stub
 		if (playerNum == this.playerNum) { //Reports what we drew
-			hand.add(drawnCard); //card is inserted to the end of the array, can use a binary search to find where to insert into the sorted array
 			seenCards.add(drawnCard);
 			lastDrawnCard = drawnCard;
+			//drawncard is inserted into hand in the proper sorted position
+			int left = 0;
+			int right = hand.size() -1;
+			int middle = -1;
+			while (left <= right) {
+				middle = (left + right)/2;
+				if (hand.get(middle).rank == drawnCard.rank) 
+					break;
+				else if (hand.get(middle).rank < drawnCard.rank)
+					left = middle + 1;
+				else
+					right = middle -1;
+			}
+			
+				hand.add(middle, drawnCard);
+			
 		}else {
 			if (drawnCard == null) { //opponent drew from random set, no knowledge of what the card is
 				randomSetSize--;
 			}else { //opponent has picked up the card from the discarded set, we have already seen this card before
-				opponentHand.add(drawnCard);
+				if (opponentHand.isEmpty())
+					opponentHand.add(drawnCard);
+				else {
+					int left = 0;
+					int right = opponentHand.size() -1;
+					int middle = -1;
+					while (left <= right) {
+						middle = (left + right)/2;
+						if (opponentHand.get(middle).rank == drawnCard.rank) 
+							break;
+						else if (opponentHand.get(middle).rank < drawnCard.rank)
+							left = middle + 1;
+						else
+							right = middle -1;
+					}
+					
+					opponentHand.add(middle, drawnCard);
+				}
 				
 			}
 		}
