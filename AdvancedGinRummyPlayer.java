@@ -35,8 +35,10 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 					else
 						right = middle -1;
 				}
-				
-					hand.add(middle, c);
+					if (hand.get(middle).rank < c.rank)
+						hand.add(middle + 1, c);
+					else
+						hand.add(middle,c);
 			}
 		}
 		
@@ -74,8 +76,10 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				else
 					right = middle -1;
 			}
-			
-				hand.add(middle, drawnCard);
+				if (hand.get(middle).rank < drawnCard.rank)
+					hand.add(middle + 1, drawnCard);
+				else
+					hand.add(middle,drawnCard);
 			
 		}else {
 			if (drawnCard == null) { //opponent drew from random set, no knowledge of what the card is
@@ -96,8 +100,10 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 						else
 							right = middle -1;
 					}
-					
-					opponentHand.add(middle, drawnCard);
+					if (opponentHand.get(middle).rank < drawnCard.rank)
+						opponentHand.add(middle + 1, drawnCard);
+					else
+						opponentHand.add(middle, drawnCard);
 				}
 				
 			}
