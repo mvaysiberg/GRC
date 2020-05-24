@@ -9,6 +9,9 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	private ArrayList<Card> opponentHand;
 	private HashSet<Card> seenCards;
 	private Card lastDrawnCard;
+	private int deadWood;
+	private ArrayList<ArrayList<ArrayList<Card>>> bestMelds;
+	private HashSet<Card> wantCards;
 	@Override
 	public void startGame(int playerNum, int startingPlayerNum, Card[] cards) {
 		// TODO Auto-generated method stub
@@ -20,31 +23,12 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		
 		for (Card c: cards) { //hand is  sorted, and all cards in hand added to seen hashset
 			seenCards.add(c);
-			if(hand.isEmpty())
-				hand.add(c);
-			else {
-				int left = 0;
-				int right = hand.size() -1;
-				int middle = -1;
-				while (left <= right) {
-					middle = (left + right)/2;
-					if (hand.get(middle).rank == c.rank) 
-						break;
-					else if (hand.get(middle).rank < c.rank)
-						left = middle + 1;
-					else
-						right = middle -1;
-				}
-					if (hand.get(middle).rank < c.rank)
-						hand.add(middle + 1, c);
-					else
-						hand.add(middle,c);
-			}
+			insertSorted(c, hand);
 		}
 		
 		opponentHand = new ArrayList<Card>();
-		
-			
+		updateMeldsDeadWood();
+		updateWantCards();
 	}
 
 	@Override
@@ -64,48 +48,13 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			seenCards.add(drawnCard);
 			lastDrawnCard = drawnCard;
 			//drawncard is inserted into hand in the proper sorted position
-			int left = 0;
-			int right = hand.size() -1;
-			int middle = -1;
-			while (left <= right) {
-				middle = (left + right)/2;
-				if (hand.get(middle).rank == drawnCard.rank) 
-					break;
-				else if (hand.get(middle).rank < drawnCard.rank)
-					left = middle + 1;
-				else
-					right = middle -1;
-			}
-				if (hand.get(middle).rank < drawnCard.rank)
-					hand.add(middle + 1, drawnCard);
-				else
-					hand.add(middle,drawnCard);
+			insertSorted(drawnCard,hand);
 			
 		}else {
 			if (drawnCard == null) { //opponent drew from random set, no knowledge of what the card is
 				randomSetSize--;
 			}else { //opponent has picked up the card from the discarded set, we have already seen this card before
-				if (opponentHand.isEmpty())
-					opponentHand.add(drawnCard);
-				else {
-					int left = 0;
-					int right = opponentHand.size() -1;
-					int middle = -1;
-					while (left <= right) {
-						middle = (left + right)/2;
-						if (opponentHand.get(middle).rank == drawnCard.rank) 
-							break;
-						else if (opponentHand.get(middle).rank < drawnCard.rank)
-							left = middle + 1;
-						else
-							right = middle -1;
-					}
-					if (opponentHand.get(middle).rank < drawnCard.rank)
-						opponentHand.add(middle + 1, drawnCard);
-					else
-						opponentHand.add(middle, drawnCard);
-				}
-				
+				insertSorted(drawnCard,opponentHand);
 			}
 		}
 	}
@@ -114,6 +63,8 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	public Card getDiscard() {
 		// TODO Auto-generated method stub
 		//choose which card to discard, cannot be lastDrawnCard
+		updateMeldsDeadWood();
+		updateWantCards();
 		return null;
 	}
 
@@ -155,6 +106,93 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	public void reportFinalHand(int playerNum, ArrayList<Card> hand) {
 		// TODO Auto-generated method stub
 		
+	}
+	private void insertSorted(Card c, ArrayList<Card> a) {
+		if (a.isEmpty())
+			a.add(c);
+		else {
+			int left = 0;
+			int right = hand.size() -1;
+			int middle = -1;
+			while (left <= right) {
+				middle = (left + right)/2;
+				if (a.get(middle).rank == c.rank) 
+					break;
+				else if (hand.get(middle).rank < c.rank)
+					left = middle + 1;
+				else
+					right = middle -1;
+			}
+				if (a.get(middle).rank < c.rank)
+					a.add(middle + 1, c);
+				else
+					a.add(middle,c);
+		}
+	}
+	private void updateMeldsDeadWood() {
+		bestMelds = GinRummyUtil.cardsToBestMeldSets(hand);
+		deadWood = GinRummyUtil.getDeadwoodPoints(bestMelds.get(0), hand);
+	}
+	
+	private void updateWantCards() {
+		wantCards = new HashSet<Card>();
+		for (int i = 0; i < hand.size(); ++i) { //this for loop calculates what cards we want to add to sets (if we have 2 or 3 cards of the same rank, look for the last 1 or 2)
+			int cardNum = hand.get(i).rank;
+			int count = 0;
+			HashSet<Integer> suits = new HashSet<Integer>();
+			while (i < hand.size() && hand.get(i).rank == cardNum) {
+				suits.add(hand.get(i).suit);
+				count++;
+				i++;
+			}
+			if (count == 2 || count == 3) {
+				if (!suits.contains(0))
+					wantCards.add(new Card(cardNum,0));
+				if (!suits.contains(1))
+					wantCards.add(new Card(cardNum,1));
+				if (!suits.contains(2))
+					wantCards.add(new Card(cardNum,2));
+				if (!suits.contains(3))
+					wantCards.add(new Card(cardNum,3));
+			}
+			i--;
+		}
+		for (int i = 0; i < hand.size(); ++i) { //this for loop calculates what cards we want to add to runs or form runs
+			int suit = hand.get(i).suit;
+			int startingRank = hand.get(i).rank;
+			int x = i;
+			int count = 0;
+			ArrayList<Integer> ranks = new ArrayList<Integer>();
+			while (x < hand.size() && (hand.get(x).rank == startingRank || hand.get(x).rank == startingRank + 1)) {
+				if (ranks.isEmpty()) {
+					ranks.add(hand.get(x).rank);
+					count++;
+				}else {
+					if (hand.get(x).suit == suit && hand.get(x).rank == ranks.get(ranks.size() -1)+1) {
+						count++;
+						ranks.add(hand.get(x).rank);
+						startingRank = hand.get(x).rank;
+					}
+				}
+				x++;
+			}
+			if (count >= 2) {
+				if (ranks.get(0) != 0) //the minimal card in a run is an ace
+					wantCards.add(new Card(ranks.get(0)-1,suit));
+				if (ranks.get(ranks.size() -1) != 12) //the maximal card in a run is a king
+					wantCards.add(new Card(ranks.get(ranks.size()-1)+1,suit));
+			}else if (count == 1) { //handle the case when there is a card of the same suit in rank startingRank + 2
+				startingRank = hand.get(i).rank;
+				x = i;
+				while (x < hand.size() && hand.get(x).rank <= startingRank + 2) {
+					if (hand.get(x).suit == suit && hand.get(x).rank == startingRank + 2) {
+						wantCards.add(new Card(startingRank + 1, suit));
+						break;
+					}
+					x++;
+				}
+			}
+		}
 	}
 	
 }
