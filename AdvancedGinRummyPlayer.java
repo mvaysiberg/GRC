@@ -131,7 +131,10 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	}
 	private void updateMeldsDeadWood() {
 		bestMelds = GinRummyUtil.cardsToBestMeldSets(hand);
-		deadWood = GinRummyUtil.getDeadwoodPoints(bestMelds.get(0), hand);
+		if (bestMelds.isEmpty())
+			deadWood = GinRummyUtil.getDeadwoodPoints(hand);
+		else
+			deadWood = GinRummyUtil.getDeadwoodPoints(bestMelds.get(0), hand);
 	}
 	
 	private void updateWantCards() {
@@ -194,5 +197,10 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			}
 		}
 	}
-	
+	public ArrayList<Card> getHand() { //returns hand for testing
+		return hand;
+	}
+	public HashSet<Card> getWantCards(){ //returns  wantCards set for testing
+		return wantCards;
+	}
 }
