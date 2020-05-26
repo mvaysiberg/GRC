@@ -35,8 +35,12 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	public boolean willDrawFaceUpCard(Card card) {
 		// TODO Auto-generated method stub
 		//logic to decide whether to take the card from the discarded set
+		if (!seenCards.contains(card)) //first turn
+				seenCards.add(card);
 		
-		//return true;
+		if (wantCards.contains(card)) //card will be added to a run/set
+			return true;
+		//add logic about other cases
 		randomSetSize--;
 		return false;
 	}
@@ -44,8 +48,9 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	@Override
 	public void reportDraw(int playerNum, Card drawnCard) {
 		// TODO Auto-generated method stub
-		if (playerNum == this.playerNum) { //Reports what we drew
+		if (drawnCard != null && !seenCards.contains(drawnCard))
 			seenCards.add(drawnCard);
+		if (playerNum == this.playerNum) { //Reports what we drew
 			lastDrawnCard = drawnCard;
 			//drawncard is inserted into hand in the proper sorted position
 			insertSorted(drawnCard,hand);
