@@ -93,7 +93,10 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	@Override
 	public ArrayList<ArrayList<Card>> getFinalMelds() {
 		// TODO Auto-generated method stub
-		return null;
+		if (deadWood == 0) //auto knocks when gin
+			return bestMelds.get(0);
+		else
+			return null;
 	}
 
 	@Override
