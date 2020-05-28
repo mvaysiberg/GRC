@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 public class AdvancedGinRummyPlayer implements GinRummyPlayer{
+	private int journalq;
 	private int playerNum;
 	private int startingPlayerNum;
 	private int randomSetSize;
@@ -248,33 +249,57 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			if (!inMeld && (lastDrawnCard == null || (lastDrawnCard.rank != handcard.rank && lastDrawnCard.suit != handcard.suit)))
 				potentialDiscards.add(handcard); //do not remove a card if it is in a set/run or if it is the last drawn card
 		}
-		ArrayList<Integer>deadWood = new ArrayList<Integer>();
-		for (Card c: potentialDiscards) {
-			deadWood.add(GinRummyUtil.getDeadwoodPoints(c));
-		}
-		int maxDeadDeadWood = 0;
-		int maxPotentialMeldDeadWood = 0;
-		for (int i = 0; i < deadWood.size(); ++i) { //find max deadwood values for dead deadwood and for potential sets/runs
-			if (potentialSet.contains(potentialDiscards.get(i)) || potentialRun.contains(potentialDiscards.get(i))) {
-				if (deadWood.get(i) > maxPotentialMeldDeadWood)
-					maxPotentialMeldDeadWood = deadWood.get(i);
-			}else {
-				if (deadWood.get(i) > maxDeadDeadWood)
-					maxDeadDeadWood = deadWood.get(i);
+		
+		//handle case when we gin
+		if (potentialDiscards.isEmpty() && hand.size() == 11) { //size == 11 is redundant as we will automatically knock when gin, but added for clarity
+			for (Card c: hand) { //need to check which card can be removed and still have deadwood = 0
+				if (c.rank == lastDrawnCard.rank && c.suit == lastDrawnCard.suit)
+					continue;
+				else {
+					ArrayList<Card> potentialGinHand = new ArrayList<Card>(hand);
+					potentialGinHand.remove(c);
+					ArrayList<ArrayList<Card>> curMelds = GinRummyUtil.cardsToBestMeldSets(potentialGinHand).get(0);
+					if (GinRummyUtil.getDeadwoodPoints(curMelds,potentialGinHand) == 0)
+						return c; //guaranteed to return as there must be one meld with > 3 cards
+				}
 			}
-		}
-		ArrayList<Card> willDiscard = new ArrayList<Card>();
-		if (maxPotentialMeldDeadWood - maxDeadDeadWood >= 6) { //case when we discard the potential meld/set, we can find the optimal threshold later
-			for (int i = 0; i < deadWood.size(); ++i) {
-				if (deadWood.get(i) == maxPotentialMeldDeadWood && (potentialSet.contains(potentialDiscards.get(i)) || potentialRun.contains(potentialDiscards.get(i))))
-					willDiscard.add(potentialDiscards.get(i));
+			return null; //will never be called, added so code can compile
+		}else {
+		
+			ArrayList<Integer>deadWood = new ArrayList<Integer>();
+			for (Card c: potentialDiscards) {
+				deadWood.add(GinRummyUtil.getDeadwoodPoints(c));
 			}
-		}else { //case when we discard largest from dead deadwood
-			for (int i = 0; i < deadWood.size(); ++i) {
-				if (deadWood.get(i) == maxDeadDeadWood && !(potentialSet.contains(potentialDiscards.get(i)) || potentialRun.contains(potentialDiscards.get(i))))
-					willDiscard.add(potentialDiscards.get(i));
+			int maxDeadDeadWood = 0;
+			int maxPotentialMeldDeadWood = 0;
+			ArrayList<Card> deadlist = new ArrayList<Card>();
+			ArrayList<Card> meldlist = new ArrayList<Card>();
+			for (int i = 0; i < deadWood.size(); ++i) { //find max deadwood values for dead deadwood and for potential sets/runs
+				if (potentialSet.contains(potentialDiscards.get(i)) || potentialRun.contains(potentialDiscards.get(i))) {
+					if (deadWood.get(i) > maxPotentialMeldDeadWood) {
+						maxPotentialMeldDeadWood = deadWood.get(i);
+						meldlist.clear();
+						meldlist.add(potentialDiscards.get(i));
+					}else if (deadWood.get(i) == maxPotentialMeldDeadWood) {
+						meldlist.add(potentialDiscards.get(i));
+					}
+				}else {
+					if (deadWood.get(i) > maxDeadDeadWood) {
+						maxDeadDeadWood = deadWood.get(i);
+						deadlist.clear();
+						deadlist.add(potentialDiscards.get(i));
+					}else if (deadWood.get(i) == maxDeadDeadWood) {
+						deadlist.add(potentialDiscards.get(i));
+					}
+				}
 			}
+			ArrayList<Card> willDiscard;
+			if (maxPotentialMeldDeadWood - maxDeadDeadWood >= 6) { //case when we discard the potential meld/set, we can find the optimal threshold later
+				willDiscard = meldlist;
+			}else { //case when we discard largest from dead deadwood
+				willDiscard = deadlist;
+			}
+			return willDiscard.get(0); //may want to choose which specific card depending on opponent's hand later
 		}
-		return willDiscard.get(0); //may want to choose which specific card depending on opponent's hand later
-	}
+	}	
 }
