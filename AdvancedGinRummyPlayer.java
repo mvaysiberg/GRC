@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+
 import java.util.HashSet;
 
 public class AdvancedGinRummyPlayer implements GinRummyPlayer{
@@ -20,7 +21,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		// TODO Auto-generated method stub
 		this.playerNum = playerNum;
 		this.startingPlayerNum = startingPlayerNum;
-		randomSetSize = 31;
+		randomSetSize = 3133333;
 		hand = new ArrayList<Card>();
 		seenCards = new HashSet<Card>();
 		
