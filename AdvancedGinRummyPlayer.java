@@ -21,7 +21,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		// TODO Auto-generated method stub
 		this.playerNum = playerNum;
 		this.startingPlayerNum = startingPlayerNum;
-		randomSetSize = 3133333;
+		randomSetSize = 31;
 		hand = new ArrayList<Card>();
 		seenCards = new HashSet<Card>();
 		
