@@ -44,9 +44,13 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		
 		if (wantCards.contains(card)) //card will be added to a run/set
 			return true;
-		//add logic about other cases
-		randomSetSize--;
-		return false;
+		Card willDiscard = discard();
+		if (GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >= 5) 
+			return true;
+		else {
+			randomSetSize--;
+			return false;
+		}
 	}
 
 	@Override
@@ -58,7 +62,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			lastDrawnCard = drawnCard;
 			//drawncard is inserted into hand in the proper sorted position
 			insertSorted(drawnCard,hand);
-			
+			updateMeldsDeadWood();
 		}else {
 			if (drawnCard == null) { //opponent drew from random set, no knowledge of what the card is
 				randomSetSize--;
@@ -305,9 +309,9 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			return willDiscard.get(0); //may want to choose which specific card depending on opponent's hand later
 		}
 	}	
-}
 
-	private Card draw() { //decide which card to draw (from face-up set or random set)
+
+	/*private Card draw() { //decide which card to draw (from face-up set or random set)
 
 		//ArrayList<Card> potentialDiscards = new ArrayList<Card>();
 		ArrayList<Card> drawlist = new ArrayList<Card>();
@@ -327,5 +331,5 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			}
 		}
 		
-	}
-	
+	}*/
+}
