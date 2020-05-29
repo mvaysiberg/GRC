@@ -101,11 +101,41 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		// TODO Auto-generated method stub
 		if (deadWood == 0) { //auto knocks when gin
 			return bestMelds.get(0);
-		}else if (opponentKnocked) { //not done yet
+		}else if (opponentKnocked) { //need to test, very bug prone!!!
 			int minDeadWood = deadWood;
 			ArrayList<ArrayList<Card>> minMelds = bestMelds.get(0);
+			
+			for (ArrayList<ArrayList<Card>> meldSet: bestMelds) {
+				ArrayList<Card> deadHand = new ArrayList<Card>(hand); //find all deadwood in hand
+				for (ArrayList<Card> meld: meldSet) {
+					for (Card c: meld) { //remove all melds from deadHand
+						deadHand.remove(c);
+					}
+				}
+				
+				for (Card c: deadHand) { //lays off deadwood
+					for (ArrayList<Card> opponentMeld: opponentFinalMelds) {
+						opponentMeld.add(c);
+						if (isSet(opponentMeld) || isRun(opponentMeld)) {
+							deadHand.remove(c);
+							break;
+						}
+					}
+				}
+				
+				int curDeadWood = GinRummyUtil.getDeadwoodPoints(deadHand);
+				if (curDeadWood < minDeadWood) {
+					minDeadWood = curDeadWood;
+					minMelds = meldSet;
+				}
+			}
+			return minMelds;
+		} else if (deadWood <= 10 && !opponentKnocked) { //we knocked (knock as soon as possible basic strategy)
+			//Jenny's part
+			return null; //change this, I have this here so code can compile for now.
+		} else {
+			return null; //no one knocks
 		}
-		return null; //should not be called, here for compiling
 	}
 
 	@Override
