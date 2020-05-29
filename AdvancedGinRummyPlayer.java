@@ -15,6 +15,8 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	private HashSet<Card> wantCards;
 	private HashSet<Card> potentialSet;
 	private HashSet<Card> potentialRun;
+	private boolean opponentKnocked;
+	private ArrayList<ArrayList<Card>> opponentFinalMelds;
 	@Override
 	public void startGame(int playerNum, int startingPlayerNum, Card[] cards) {
 		// TODO Auto-generated method stub
@@ -32,6 +34,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		opponentHand = new ArrayList<Card>();
 		updateMeldsDeadWood();
 		updateWantCards();
+		opponentKnocked = false;
 	}
 
 	@Override
@@ -96,16 +99,22 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	@Override
 	public ArrayList<ArrayList<Card>> getFinalMelds() {
 		// TODO Auto-generated method stub
-		if (deadWood == 0) //auto knocks when gin
+		if (deadWood == 0) { //auto knocks when gin
 			return bestMelds.get(0);
-		else
-			return null;
+		}else if (opponentKnocked) { //not done yet
+			int minDeadWood = deadWood;
+			ArrayList<ArrayList<Card>> minMelds = bestMelds.get(0);
+		}
+		return null; //should not be called, here for compiling
 	}
 
 	@Override
 	public void reportFinalMelds(int playerNum, ArrayList<ArrayList<Card>> melds) {
 		// TODO Auto-generated method stub
-		
+		if (playerNum != this.playerNum) {
+			opponentFinalMelds = melds;
+			opponentKnocked = true;
+		}
 	}
 
 	@Override
@@ -310,26 +319,29 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		}
 	}	
 
-
-	/*private Card draw() { //decide which card to draw (from face-up set or random set)
-
-		//ArrayList<Card> potentialDiscards = new ArrayList<Card>();
-		ArrayList<Card> drawlist = new ArrayList<Card>();
-		for (Card i = 0; i < 10; ++i) { //the face-up value can match with one of our potential sets/runs, we pick it up
-			Card PotentialDiscardValue = getDiscard();
-			Card faceup = seenCards(i);
-			if (potentialSet.contains(PotentialDiscardValue) || potentialRun.contains(PotentialDiscardValue)) {
-				drawlist.add(PotentialDiscardValue);
-				}
-			else {
-				if (PotentialDiscardValue - faceup >= 5) { //take the face-up value card
-					drawlist.add(seenCards.add(faceup));
-				}else { //take from the random set
-					//drawlist.add(randomlist);
-				    return false;
-				}
-			}
+	private boolean isSet(ArrayList<Card> cards) {
+		if (cards.size() < 3)
+			return false;
+		int rank = cards.get(0).rank;
+		for (Card c: cards) {
+			if (c.rank != rank)
+				return false;
 		}
-		
-	}*/
+		return true;
+	}
+	private boolean isRun(ArrayList<Card> cards) {
+		if (cards.size() < 3)
+			return false;
+		ArrayList<Card> cardsSorted = new ArrayList<Card>();
+		for (Card c: cards) {
+			insertSorted(c, cardsSorted);
+		}
+		int suit = cardsSorted.get(0).suit;
+		for (int i = 1; i < cardsSorted.size(); ++i) {
+			if (cards.get(i).suit != suit || cards.get(i).rank != cards.get(i-1).rank + 1)
+				return false;
+		}
+		return true;
+	}
+	
 }
