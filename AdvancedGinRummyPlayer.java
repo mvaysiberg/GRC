@@ -306,3 +306,26 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		}
 	}	
 }
+
+	private Card draw() { //decide which card to draw (from face-up set or random set)
+
+		//ArrayList<Card> potentialDiscards = new ArrayList<Card>();
+		ArrayList<Card> drawlist = new ArrayList<Card>();
+		for (Card i = 0; i < 10; ++i) { //the face-up value can match with one of our potential sets/runs, we pick it up
+			Card PotentialDiscardValue = getDiscard();
+			Card faceup = seenCards(i);
+			if (potentialSet.contains(PotentialDiscardValue) || potentialRun.contains(PotentialDiscardValue)) {
+				drawlist.add(PotentialDiscardValue);
+				}
+			else {
+				if (PotentialDiscardValue - faceup >= 5) { //take the face-up value card
+					drawlist.add(seenCards.add(faceup));
+				}else { //take from the random set
+					//drawlist.add(randomlist);
+				    return false;
+				}
+			}
+		}
+		
+	}
+	
