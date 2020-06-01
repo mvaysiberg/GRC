@@ -136,10 +136,10 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			}
 		} else if (deadWood <= 10 && !opponentKnocked) { //we knocked (knock as soon as possible basic strategy)
 			//Jenny's part
-
-			if (getFinalMelds.contains(opponentHand)) //check whether opponent face-up card they draw MATCH our sets/runs
-				//not sure how to switch to the other melds here.
-				return null;
+			for (ArrayList<ArrayList<Card>> meldSet: bestMelds) {
+				if (bestMelds.contains(opponentHand)) //check whether opponent face-up card they draw MATCH our sets/runs
+					bestMelds.remove(index);//not sure how to remove that specific meld
+				}
 		} else {
 			return null; //no one knocks
 		}
