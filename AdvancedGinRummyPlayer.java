@@ -136,10 +136,27 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			}
 		} else if (deadWood <= 10 && !opponentKnocked) { //we knocked (knock as soon as possible basic strategy)
 			//Jenny's part
+			ArrayList<ArrayList<Card>> bestMeld = bestMelds.get(0);
+			int opponentMaxDeadwood = 0;
 			for (ArrayList<ArrayList<Card>> meldSet: bestMelds) {
-				if (bestMelds.contains(opponentHand)) //check whether opponent face-up card they draw MATCH our sets/runs
-					bestMelds.remove(index);//not sure how to remove that specific meld
+				ArrayList<Card> opponentLayoffHand = new ArrayList<Card>(opponentHand);
+				//if (bestMelds.contains(opponentHand)) //check whether opponent face-up card they draw MATCH our sets/runs
+					//bestMelds.remove(index);//not sure how to remove that specific meld
+				for (Card c: opponentHand) {
+					for (ArrayList<Card> meld: meldSet) {
+						meld.add(c);
+						if (isSet(meld) || isRun(meld)) { //checks if opponent's card can be added to one of our melds
+							opponentLayoffHand.remove(c);
+						}
+					}
 				}
+				int curDeadwood = GinRummyUtil.getDeadwoodPoints(opponentLayoffHand);
+				if (curDeadwood > opponentMaxDeadwood) { //return the hand that will make the opponent have the most amount of deadwood
+					bestMeld = meldSet;
+					opponentMaxDeadwood = curDeadwood;
+				}
+			}
+			return bestMeld;
 		} else {
 			return null; //no one knocks
 		}
