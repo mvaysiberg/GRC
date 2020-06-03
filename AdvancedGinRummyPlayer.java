@@ -315,12 +315,12 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			for (ArrayList<ArrayList<Card>> melds: bestMelds) {
 				for (ArrayList<Card> meld: melds) {
 					for (Card c: meld) {
-						if (handcard.rank == c.rank && handcard.suit == c.suit)
+						if (compareCards(handcard, c))
 							inMeld = true;
 					}
 				}
 			}
-			if (!inMeld && (lastDrawnCard == null || (lastDrawnCard.rank != handcard.rank && lastDrawnCard.suit != handcard.suit)))
+			if (!inMeld && (lastDrawnCard == null || !compareCards(lastDrawnCard,handcard)))
 				potentialDiscards.add(handcard); //do not remove a card if it is in a set/run or if it is the last drawn card
 		}
 		
