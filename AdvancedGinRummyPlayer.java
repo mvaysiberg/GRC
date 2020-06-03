@@ -104,7 +104,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			return bestMelds.get(0);
 		}else if (opponentKnocked) { //need to test, very bug prone!!!
 			if (bestMelds.isEmpty()) { //opponent knocked and we have no melds =(
-				return null;
+				return new ArrayList<ArrayList<Card>>();
 			}else { //opponent knocked and we have melds, choose one that maximizes layoffs
 				ArrayList<ArrayList<Card>> minMelds = bestMelds.get(0);
 				int minDeadWood = deadWood;
@@ -115,18 +115,19 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 							deadHand.remove(c);
 						}
 					}
-					
+					ArrayList<Card> tempDeadHand = new ArrayList<Card>(deadHand);
 					for (Card c: deadHand) { //lays off deadwood
 						for (ArrayList<Card> opponentMeld: opponentFinalMelds) {
-							opponentMeld.add(c);
-							if (isSet(opponentMeld) || isRun(opponentMeld)) {
-								deadHand.remove(c);
+							ArrayList<Card> tempOpponentMeld = new ArrayList<Card>(opponentMeld);
+							tempOpponentMeld.add(c);
+							if (isSet(tempOpponentMeld) || isRun(tempOpponentMeld)) {
+								tempDeadHand.remove(c);
 								break;
 							}
 						}
 					}
 					
-					int curDeadWood = GinRummyUtil.getDeadwoodPoints(deadHand);
+					int curDeadWood = GinRummyUtil.getDeadwoodPoints(tempDeadHand);
 					if (curDeadWood < minDeadWood) {
 						minDeadWood = curDeadWood;
 						minMelds = meldSet;
@@ -144,8 +145,9 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 					//bestMelds.remove(index);//not sure how to remove that specific meld
 				for (Card c: opponentHand) {
 					for (ArrayList<Card> meld: meldSet) {
-						meld.add(c);
-						if (isSet(meld) || isRun(meld)) { //checks if opponent's card can be added to one of our melds
+						ArrayList<Card> tempMeld = new ArrayList<Card>(meld);
+						tempMeld.add(c);
+						if (isSet(tempMeld) || isRun(tempMeld)) { //checks if opponent's card can be added to one of our melds
 							opponentLayoffHand.remove(c);
 						}
 					}
@@ -189,11 +191,11 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		
 	}
 	private void insertSorted(Card c, ArrayList<Card> a) {
-		if (a.isEmpty())
+		if (a.isEmpty()) {
 			a.add(c);
-		else {
+		}else {
 			int left = 0;
-			int right = hand.size() -1;
+			int right = a.size() -1;
 			int middle = -1;
 			while (left <= right) {
 				middle = (left + right)/2;
