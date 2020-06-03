@@ -244,6 +244,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			}
 			if (count == 2) {
 				for (Integer suit: suits) {
+					if (!potentialSet.contains(new Card(cardNum,suit)))
 					potentialSet.add(new Card(cardNum,suit));
 				}
 			}
@@ -342,12 +343,15 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			for (Card c: potentialDiscards) {
 				deadWood.add(GinRummyUtil.getDeadwoodPoints(c));
 			}
+			//
+			System.out.println("Discards" + potentialDiscards);
+			//
 			int maxDeadDeadWood = 0;
 			int maxPotentialMeldDeadWood = 0;
 			ArrayList<Card> deadlist = new ArrayList<Card>();
 			ArrayList<Card> meldlist = new ArrayList<Card>();
 			for (int i = 0; i < deadWood.size(); ++i) { //find max deadwood values for dead deadwood and for potential sets/runs
-				if (potentialSet.contains(potentialDiscards.get(i)) || potentialRun.contains(potentialDiscards.get(i))) {
+				if (hashSetContains(potentialSet,potentialDiscards.get(i)) || hashSetContains(potentialRun,potentialDiscards.get(i))) {
 					if (deadWood.get(i) > maxPotentialMeldDeadWood) {
 						maxPotentialMeldDeadWood = deadWood.get(i);
 						meldlist.clear();
@@ -365,6 +369,9 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 					}
 				}
 			}
+			//
+			System.out.println("potentials" + deadlist + " " + meldlist);
+			//
 			ArrayList<Card> willDiscard;
 			if (maxPotentialMeldDeadWood - maxDeadDeadWood >= 6) { //case when we discard the potential meld/set, we can find the optimal threshold later
 				willDiscard = meldlist;
@@ -399,5 +406,15 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		}
 		return true;
 	}
+	private boolean compareCards(Card c1, Card c2) {
+		return c1.rank == c2.rank && c1.suit == c2.suit;
+	}
 	
+	private boolean hashSetContains(HashSet<Card> hs, Card c) {
+		for (Card hashcard : hs) {
+			if (compareCards(hashcard, c))
+				return true;
+		}
+		return false;
+	}
 }
