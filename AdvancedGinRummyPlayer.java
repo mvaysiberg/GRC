@@ -67,6 +67,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			//drawncard is inserted into hand in the proper sorted position
 			insertSorted(drawnCard,hand);
 			updateMeldsDeadWood();
+			updateWantCards();
 		}else {
 			if (drawnCard == null) { //opponent drew from random set, no knowledge of what the card is
 				randomSetSize--;
@@ -345,6 +346,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			}
 			//
 			System.out.println("Discards" + potentialDiscards);
+			System.out.println("Hand" + hand);
 			//
 			int maxDeadDeadWood = 0;
 			int maxPotentialMeldDeadWood = 0;
@@ -373,7 +375,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			System.out.println("potentials" + deadlist + " " + meldlist);
 			//
 			ArrayList<Card> willDiscard;
-			if (maxPotentialMeldDeadWood - maxDeadDeadWood >= 6) { //case when we discard the potential meld/set, we can find the optimal threshold later
+			if (maxPotentialMeldDeadWood - maxDeadDeadWood >= 6 || deadlist.isEmpty()) { //case when we discard the potential meld/set, we can find the optimal threshold later
 				willDiscard = meldlist;
 			}else { //case when we discard largest from dead deadwood
 				willDiscard = deadlist;
