@@ -16,6 +16,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	private HashSet<Card> potentialSet;
 	private HashSet<Card> potentialRun;
 	private boolean opponentKnocked;
+	private HashSet<Card> sets;
 	private ArrayList<ArrayList<Card>> opponentFinalMelds;
 	@Override
 	public void startGame(int playerNum, int startingPlayerNum, Card[] cards) {
@@ -214,11 +215,22 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		}
 	}
 	private void updateMeldsDeadWood() {
+		sets = new HashSet<Card>();
 		bestMelds = GinRummyUtil.cardsToBestMeldSets(hand);
 		if (bestMelds.isEmpty())
 			deadWood = GinRummyUtil.getDeadwoodPoints(hand);
-		else
+		else {
 			deadWood = GinRummyUtil.getDeadwoodPoints(bestMelds.get(0), hand);
+			for (ArrayList<ArrayList<Card>> melds: bestMelds) {
+				for (ArrayList<Card> meld: melds) {
+					if (isSet(meld)) {
+						for (Card c: meld) {
+							sets.add(c);
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	private void updateWantCards() {
@@ -251,22 +263,27 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			}
 			i--;
 		}
+		ArrayList<Card> newHand = new ArrayList<Card>(); //create a new hand without sets so that avoid trying to form runs with current sets
+		for (Card c: hand) {
+			if (!hashSetContains(sets,c))
+				newHand.add(c);
+		}
 		potentialRun = new HashSet<Card>();
-		for (int i = 0; i < hand.size(); ++i) { //this for loop calculates what cards we want to add to runs or form runs
-			int suit = hand.get(i).suit;
-			int startingRank = hand.get(i).rank;
+		for (int i = 0; i < newHand.size(); ++i) { //this for loop calculates what cards we want to add to runs or form runs
+			int suit = newHand.get(i).suit;
+			int startingRank = newHand.get(i).rank;
 			int x = i;
 			int count = 0;
 			ArrayList<Integer> ranks = new ArrayList<Integer>();
-			while (x < hand.size() && (hand.get(x).rank == startingRank || hand.get(x).rank == startingRank + 1)) {
+			while (x < newHand.size() && (newHand.get(x).rank == startingRank || newHand.get(x).rank == startingRank + 1)) {
 				if (ranks.isEmpty()) {
-					ranks.add(hand.get(x).rank);
+					ranks.add(newHand.get(x).rank);
 					count++;
 				}else {
-					if (hand.get(x).suit == suit && hand.get(x).rank == ranks.get(ranks.size() -1)+1) {
+					if (newHand.get(x).suit == suit && newHand.get(x).rank == ranks.get(ranks.size() -1)+1) {
 						count++;
-						ranks.add(hand.get(x).rank);
-						startingRank = hand.get(x).rank;
+						ranks.add(newHand.get(x).rank);
+						startingRank = newHand.get(x).rank;
 					}
 				}
 				x++;
@@ -282,10 +299,10 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 					}
 				}
 			}else if (count == 1) { //handle the case when there is a card of the same suit in rank startingRank + 2
-				startingRank = hand.get(i).rank;
+				startingRank = newHand.get(i).rank;
 				x = i;
-				while (x < hand.size() && hand.get(x).rank <= startingRank + 2) {
-					if (hand.get(x).suit == suit && hand.get(x).rank == startingRank + 2) {
+				while (x < newHand.size() && newHand.get(x).rank <= startingRank + 2) {
+					if (newHand.get(x).suit == suit && newHand.get(x).rank == startingRank + 2) {
 						wantCards.add(new Card(startingRank + 1, suit));
 						potentialRun.add(new Card(startingRank,suit));
 						potentialRun.add(new Card(startingRank + 2, suit));
@@ -346,6 +363,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			}
 			//
 			System.out.println("Discards" + potentialDiscards);
+			//System.out.println("Deadwood" + deadWood);
 			System.out.println("Hand" + hand);
 			//
 			int maxDeadDeadWood = 0;
@@ -373,6 +391,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			}
 			//
 			System.out.println("potentials" + deadlist + " " + meldlist);
+			System.out.println(maxDeadDeadWood + " " + maxPotentialMeldDeadWood);
 			//
 			ArrayList<Card> willDiscard;
 			if (maxPotentialMeldDeadWood - maxDeadDeadWood >= 6 || deadlist.isEmpty()) { //case when we discard the potential meld/set, we can find the optimal threshold later
@@ -413,6 +432,8 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	}
 	
 	private boolean hashSetContains(HashSet<Card> hs, Card c) {
+		if (hs.isEmpty())
+			return false;
 		for (Card hashcard : hs) {
 			if (compareCards(hashcard, c))
 				return true;
