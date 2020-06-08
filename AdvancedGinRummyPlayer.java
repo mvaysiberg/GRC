@@ -369,7 +369,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		//
 		//System.out.println("Discards" + potentialDiscards);
 		//System.out.println("Deadwood" + deadWood);
-		System.out.println("Hand" + hand);
+		//System.out.println("Hand" + hand);
 		//
 		int maxDeadDeadWood = 0;
 		int maxPotentialMeldDeadWood = 0;
@@ -395,8 +395,8 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			}
 		}
 		//
-		System.out.println("potentials" + deadlist + " " + meldlist);
-		System.out.println(maxDeadDeadWood + " " + maxPotentialMeldDeadWood);
+		//System.out.println("potentials" + deadlist + " " + meldlist);
+		//System.out.println(maxDeadDeadWood + " " + maxPotentialMeldDeadWood);
 		//
 		ArrayList<Card> willDiscard;
 		if (numPotentials + numMelds <= 4 ) { //when the sum of melds is <= 3
