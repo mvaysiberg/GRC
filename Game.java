@@ -10,11 +10,12 @@ public class Game {
 	public static float play(GinRummyPlayer p0, GinRummyPlayer p1, int x) {
 		int p0_wins = 0;
 		GinRummyGame.setPlayVerbose(false);
+		//GinRummyGame.setPlayVerbose(true);
 		for (int i = 0; i < x; ++i) {
 			int winner = new GinRummyGame(p0, p1).play();
 			if (winner == 0)
 				++p0_wins;
 		}
-		return (float)p0_wins /x;
+		return p0_wins;
 	}
 }
