@@ -56,7 +56,12 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			tookFaceup = true;
 			return true;
 		}
-		Card willDiscard = discard();
+		ArrayList<Card> tempHand = new ArrayList<Card>(hand);
+		insertSorted(card,tempHand);
+		lastDrawnCard = card; //pretend that we drew the card for the sake of the algorithm
+		Card willDiscard = discard(tempHand);
+		lastDrawnCard = null;
+		
 		if (willDiscard != null && GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >= 5) {
 			tookFaceup = true;
 			return true;
@@ -91,7 +96,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	public Card getDiscard() {
 		// TODO Auto-generated method stub
 		//choose which card to discard, cannot be lastDrawnCard
-		Card ret = discard();
+		Card ret = discard(hand);
 		hand.remove(ret);
 		updateMeldsDeadWood();
 		updateWantCards();
@@ -340,9 +345,9 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	public HashSet<Card> getPotentialRun(){ //returns potentialRun for testing
 		return potentialRun;
 	}
-	private Card discard() { //gets card to discard from current hand
+	private Card discard(ArrayList<Card> h) { //gets card to discard from current hand
 		ArrayList<Card> potentialDiscards = new ArrayList<Card>();
-		for (Card handcard: hand) {
+		for (Card handcard: h) {
 			boolean inMeld = false;
 			if (!bestMelds.isEmpty()) {
 				for (ArrayList<Card> meld: bestMelds.get(0)) {
@@ -358,11 +363,11 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		
 		//handle case when we gin
 		if (potentialDiscards.isEmpty() &&  deadWood == 0) { //size == 11 is redundant as we will automatically knock when gin, but added for clarity
-			for (Card c: hand) { //need to check which card can be removed and still have deadwood = 0
+			for (Card c: h) { //need to check which card can be removed and still have deadwood = 0
 				if (lastDrawnCard == null || compareCards(c,lastDrawnCard))
 					continue;
 				else {
-					ArrayList<Card> potentialGinHand = new ArrayList<Card>(hand);
+					ArrayList<Card> potentialGinHand = new ArrayList<Card>(h);
 					potentialGinHand.remove(c);
 					ArrayList<ArrayList<Card>> curMelds = GinRummyUtil.cardsToBestMeldSets(potentialGinHand).get(0);
 					if (GinRummyUtil.getDeadwoodPoints(curMelds,potentialGinHand) == 0)
