@@ -2,6 +2,83 @@ import java.util.ArrayList;
 
 import java.util.HashSet;
 
+import java.util.Vector;
+import java.lang.*;
+import java.lang.reflect.*;
+
+public class RLearner {
+
+    RLWorld thisWorld;
+    RLPolicy policy;
+
+    // Learning types
+    public static final int Q_LEARNING = 1;
+    public static final int SARSA = 2;
+    public static final int Q_LAMBDA = 3; // Good parms were lambda=0.05, gamma=0.1, alpha=0.01, epsilon=0.1
+
+    // Action selection types
+    public static final int E_GREEDY = 1;
+    public static final int SOFTMAX = 2;
+
+    int learningMethod;
+    int actionSelection;
+
+    double epsilon;
+    double temp;
+
+    double alpha;
+    double gamma;
+    double lambda;
+
+    int[] dimSize;
+    int[] state;
+    int[] newstate;
+    int action;
+    double reward;
+
+    int epochs;
+	public int epochsdone;
+	
+    Thread thisThread;
+    public boolean running;
+
+    Vector trace = new Vector();
+    int[] saPair;
+
+    long timer;
+
+    boolean random = false;
+	Runnable a;
+
+    public RLearner( RLWorld world) {
+		// Getting the world from the invoking method.
+		thisWorld = world;
+
+		// Get dimensions of the world.
+		dimSize = thisWorld.getDimension();
+	
+		// Creating new policy with dimensions to suit the world.
+		policy = new RLPolicy( dimSize );
+
+		// Initializing the policy with the initial values defined by the world.
+		policy.initValues( thisWorld.getInitValues() );
+	
+		learningMethod = Q_LEARNING;  //Q_LAMBDA;//SARSA;
+		actionSelection = E_GREEDY;
+	
+		// set default values
+		epsilon = 0.1;
+		temp = 1;
+
+		alpha = 1; // For CliffWorld alpha = 1 is good
+		gamma = 0.1;
+		lambda = 0.1;  // For CliffWorld gamma = 0.1, l = 0.5 (l*g=0.05)is a good choice.
+
+		System.out.println( "RLearner initialised" );
+	
+    }
+	
+	
 public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	private int playerNum;
 	private int startingPlayerNum;
