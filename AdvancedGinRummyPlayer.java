@@ -63,7 +63,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		Card willDiscard = discard(tempHand);
 		lastDrawnCard = null;
 		
-		if (willDiscard != null && GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >= 5) {
+		if (willDiscard != null && GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >= 7) {
 			tookFaceup = true;
 			return true;
 		}else {
@@ -452,8 +452,8 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		int maxMatched = (maxMatchedDwood > maxMatchedPotentials)? maxMatchedDwood : maxMatchedPotentials;
 		int maxUnmatched = (maxUnmatchedDwood > maxUnmatchedPotentials) ? maxUnmatchedDwood : maxUnmatchedPotentials;
 		
-		if (maxMatched - maxUnmatched >= 5 || maxUnmatched == -1) {
-			 return (maxMatchedDwood >= maxMatchedPotentials)? deadlist.get(0): meldlist.get(0);
+		if (maxMatched - maxUnmatched >= 7 || maxUnmatched == -1) {
+			 return (maxMatchedDwood >= maxMatchedPotentials && !deadlist.isEmpty())? deadlist.get(0): meldlist.get(0);
 		} else {
 			if (maxUnmatchedDwood >= 6)
 				return dead.get(dIndex);
