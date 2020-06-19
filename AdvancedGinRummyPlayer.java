@@ -93,10 +93,11 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	private HashSet<Card> wantCards;
 	private HashSet<Card> potentialSet;
 	private HashSet<Card> potentialRun;
-	private HashSet<Card> potentialHardRun;
+	//private HashSet<Card> potentialHardRun;
 	private boolean opponentKnocked;
 	private HashSet<Card> sets;
 	private ArrayList<ArrayList<Card>> opponentFinalMelds;
+	private ArrayList<Card> opponentDiscards;
 	//private int numMelds;
 	//private int numPotentials;
 	@Override
@@ -108,7 +109,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		randomSetSize = 31;
 		hand = new ArrayList<Card>();
 		seenCards = new HashSet<Card>();
-		
+		opponentDiscards = new ArrayList<Card>();
 		for (Card c: cards) { //hand is  sorted, and all cards in hand added to seen hashset
 			seenCards.add(c);
 			insertSorted(c, hand);
@@ -139,7 +140,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		Card willDiscard = discard(tempHand);
 		lastDrawnCard = null;
 		
-		if (willDiscard != null && GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >= 5) {
+		if (willDiscard != null && GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >= 7) {
 			tookFaceup = true;
 			return true;
 		}else {
@@ -185,6 +186,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		// TODO Auto-generated method stub
 		if (playerNum != this.playerNum) { //reports the card that the opponent discarded
 			seenCards.add(discardedCard);
+			insertSorted(discardedCard, opponentDiscards); //opponent discarded cards are sorted?
 			if (opponentHand.contains(discardedCard))
 				opponentHand.remove(discardedCard);
 		} //update prediction model???
@@ -291,7 +293,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				middle = (left + right)/2;
 				if (a.get(middle).rank == c.rank) 
 					break;
-				else if (hand.get(middle).rank < c.rank)
+				else if (a.get(middle).rank < c.rank)
 					left = middle + 1;
 				else
 					right = middle -1;
@@ -358,7 +360,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				newHand.add(c);
 		}
 		potentialRun = new HashSet<Card>();
-		potentialHardRun = new HashSet<Card>();
+		//potentialHardRun = new HashSet<Card>();
 		for (int i = 0; i < newHand.size(); ++i) { //this for loop calculates what cards we want to add to runs or form runs
 			int suit = newHand.get(i).suit;
 			int startingRank = newHand.get(i).rank;
@@ -397,8 +399,8 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				while (x < newHand.size() && newHand.get(x).rank <= startingRank + 2) {
 					if (newHand.get(x).suit == suit && newHand.get(x).rank == startingRank + 2) {
 						wantCards.add(new Card(startingRank + 1, suit));
-						potentialHardRun.add(new Card(startingRank,suit));
-						potentialHardRun.add(new Card(startingRank + 2, suit));
+						//potentialHardRun.add(new Card(startingRank,suit));
+						//potentialHardRun.add(new Card(startingRank + 2, suit));
 						potentialRun.add(new Card(startingRank,suit));
 						potentialRun.add(new Card(startingRank + 2, suit));
 						//++numPotentials; //this is a potential run 
@@ -527,8 +529,8 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		int maxMatched = (maxMatchedDwood > maxMatchedPotentials)? maxMatchedDwood : maxMatchedPotentials;
 		int maxUnmatched = (maxUnmatchedDwood > maxUnmatchedPotentials) ? maxUnmatchedDwood : maxUnmatchedPotentials;
 		
-		if (maxMatched - maxUnmatched >= 5 || maxUnmatched == -1) {
-			 return (maxMatchedDwood >= maxMatchedPotentials)? deadlist.get(0): meldlist.get(0);
+		if (maxMatched - maxUnmatched >= 7 || maxUnmatched == -1) {
+			 return (maxMatchedDwood >= maxMatchedPotentials && !deadlist.isEmpty())? deadlist.get(0): meldlist.get(0);
 		} else {
 			if (maxUnmatchedDwood >= 6)
 				return dead.get(dIndex);
@@ -586,6 +588,8 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	
 	
 	private boolean matches(Card c, ArrayList<Card> h) { //check if a card is a match to a hand
+		if (hashSetContains(safeCards(h), c)) //if a card is safe then it cannot match the opponent's hand
+			return false;
 		for (Card handCard :  h) { 
 			if (handCard.rank == c.rank) //check for sets
 				return true;
@@ -593,5 +597,39 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				return true;
 		}
 		return false;
+	}
+	
+	private HashSet<Card> safeCards(ArrayList<Card> a){
+		HashSet<Card> ret = new HashSet<Card>();
+		for (Card c: a) {
+			int rank = c.rank;
+			int suit = c.suit;
+			switch (suit) { //cards of the same rank are now safe
+			case 0:
+				ret.add(new Card(rank,1));
+				ret.add(new Card(rank,2));
+				ret.add(new Card(rank,3));
+				break;
+			case 1:
+				ret.add(new Card(rank,0));
+				ret.add(new Card(rank,2));
+				ret.add(new Card(rank,3));
+				break;
+			case 2:
+				ret.add(new Card(rank,0));
+				ret.add(new Card(rank,1));
+				ret.add(new Card(rank, 3));
+				break;
+			case 3:
+				ret.add(new Card(rank, 0));
+				ret.add(new Card(rank, 1));
+				ret.add(new Card(rank, 2));
+				break;
+			}
+			//cards of adjacent rank with same suit are now safe
+			ret.add(new Card(rank -1,suit));
+			ret.add(new Card(rank +1, suit));
+		}
+		return ret;
 	}
 }
