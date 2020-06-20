@@ -4,7 +4,8 @@ public class Game {
 	public static void main(String[] args) {
 		//GinRummyGame.setPlayVerbose(true);
 		//new GinRummyGame(new AdvancedGinRummyPlayer(), new SimpleGinRummyPlayer()).play();
-		System.out.println(play(new AdvancedGinRummyPlayer(), new SimpleGinRummyPlayer(), 100000));
+		//System.out.println(play(new AdvancedGinRummyPlayer(), new SimpleGinRummyPlayer(), 100000));
+		play(new AdvancedGinRummyPlayer(), new SimpleGRCPlayerRoundData(),1);
 	}
 	
 	public static float play(GinRummyPlayer p0, GinRummyPlayer p1, int x) {
@@ -18,4 +19,5 @@ public class Game {
 		}
 		return p0_wins;
 	}
+	
 }

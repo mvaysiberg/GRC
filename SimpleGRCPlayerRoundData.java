@@ -1,5 +1,8 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
+import java.util.List;
+import java.io.*;
 
 public class SimpleGRCPlayerRoundData implements GinRummyPlayer{
 	private int playerNum;
@@ -12,6 +15,7 @@ public class SimpleGRCPlayerRoundData implements GinRummyPlayer{
 	ArrayList<Long> drawDiscardBitstrings = new ArrayList<Long>();
 	private int roundNum;
 	private int deadwood;
+	ArrayList<ArrayList<String>> rows;
 	@Override
 	public void startGame(int playerNum, int startingPlayerNum, Card[] cards) {
 		roundNum = 0;
@@ -99,10 +103,42 @@ public class SimpleGRCPlayerRoundData implements GinRummyPlayer{
 		++roundNum;
 		ArrayList<ArrayList<ArrayList<Card>>> bestMelds = GinRummyUtil.cardsToBestMeldSets(cards);
 		deadwood = (bestMelds.isEmpty()) ? GinRummyUtil.getDeadwoodPoints(cards) : GinRummyUtil.getDeadwoodPoints(bestMelds.get(0),cards);
+		if (roundNum == 1) {
+			//rows = Arrays.asList(Arrays.asList(Integer.toString(roundNum), Integer.toString(deadwood)));
+			rows = new ArrayList<ArrayList<String>>();
+			ArrayList<String> row = new ArrayList<String>();
+			row.add(Integer.toString(roundNum));
+			row.add(Integer.toString(deadwood));
+			rows.add(row);
+		}else {
+			//rows.add(Arrays.asList(Integer.toString(roundNum), Integer.toString(deadwood)));
+			ArrayList<String> row = new ArrayList<String>();
+			row.add(Integer.toString(roundNum));
+			row.add(Integer.toString(deadwood));
+			rows.add(row);
+		}
 		
 		ArrayList<ArrayList<ArrayList<Card>>> bestMeldSets = GinRummyUtil.cardsToBestMeldSets(cards);
 		if (!opponentKnocked && (bestMeldSets.isEmpty() || GinRummyUtil.getDeadwoodPoints(bestMeldSets.get(0), cards) > GinRummyUtil.MAX_DEADWOOD))
 			return null;
+		try {
+		FileWriter csvWriter = new FileWriter("roundData.csv");
+		csvWriter.append("Round");
+		csvWriter.append(",");
+		csvWriter.append("Deadwood");
+		csvWriter.append("\n");
+		
+		for (List<String> rowData: rows) {
+			csvWriter.append(String.join(",", rowData));
+			csvWriter.append("\n");
+		}
+		
+		csvWriter.flush();
+		csvWriter.close();
+		}catch(Exception e) {
+			System.out.println(e.toString());
+		}
+		
 		return bestMeldSets.isEmpty() ? new ArrayList<ArrayList<Card>>() : bestMeldSets.get(random.nextInt(bestMeldSets.size()));
 	}
 
