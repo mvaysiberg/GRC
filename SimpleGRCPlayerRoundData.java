@@ -15,7 +15,12 @@ public class SimpleGRCPlayerRoundData implements GinRummyPlayer{
 	ArrayList<Long> drawDiscardBitstrings = new ArrayList<Long>();
 	private int roundNum;
 	private int deadwood;
-	ArrayList<ArrayList<String>> rows;
+	private ArrayList<ArrayList<String>> rows;
+	private FileWriter csvWriter;
+	
+	public SimpleGRCPlayerRoundData(FileWriter f) {
+		csvWriter = f;
+	}
 	@Override
 	public void startGame(int playerNum, int startingPlayerNum, Card[] cards) {
 		roundNum = 0;
@@ -122,19 +127,12 @@ public class SimpleGRCPlayerRoundData implements GinRummyPlayer{
 		if (!opponentKnocked && (bestMeldSets.isEmpty() || GinRummyUtil.getDeadwoodPoints(bestMeldSets.get(0), cards) > GinRummyUtil.MAX_DEADWOOD))
 			return null;
 		try {
-		FileWriter csvWriter = new FileWriter("roundData.csv");
-		csvWriter.append("Round");
-		csvWriter.append(",");
-		csvWriter.append("Deadwood");
-		csvWriter.append("\n");
 		
 		for (List<String> rowData: rows) {
 			csvWriter.append(String.join(",", rowData));
 			csvWriter.append("\n");
 		}
 		
-		csvWriter.flush();
-		csvWriter.close();
 		}catch(Exception e) {
 			System.out.println(e.toString());
 		}

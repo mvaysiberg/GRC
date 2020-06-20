@@ -1,3 +1,4 @@
+import java.io.FileWriter;
 
 public class Game {
 
@@ -5,7 +6,8 @@ public class Game {
 		//GinRummyGame.setPlayVerbose(true);
 		//new GinRummyGame(new AdvancedGinRummyPlayer(), new SimpleGinRummyPlayer()).play();
 		//System.out.println(play(new AdvancedGinRummyPlayer(), new SimpleGinRummyPlayer(), 100000));
-		play(new AdvancedGinRummyPlayer(), new SimpleGRCPlayerRoundData(),1);
+		roundCsv("roundData.csv",new SimpleGinRummyPlayer(),1);
+		
 	}
 	
 	public static float play(GinRummyPlayer p0, GinRummyPlayer p1, int x) {
@@ -18,6 +20,22 @@ public class Game {
 				++p0_wins;
 		}
 		return p0_wins;
+	}
+	
+	public static void roundCsv(String fileName, GinRummyPlayer p1, int x) {
+		try {
+			FileWriter csvWriter = new FileWriter(fileName);
+			csvWriter.append("Round");
+			csvWriter.append(",");
+			csvWriter.append("Deadwood");
+			csvWriter.append("\n");
+			
+			play(new SimpleGRCPlayerRoundData(csvWriter), p1,x);
+			csvWriter.flush();
+			csvWriter.close();
+			} catch(Exception e) {
+				System.out.println(e.toString());
+			}
 	}
 	
 }
