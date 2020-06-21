@@ -6,7 +6,7 @@ public class Game {
 		//GinRummyGame.setPlayVerbose(true);
 		//new GinRummyGame(new AdvancedGinRummyPlayer(), new SimpleGinRummyPlayer()).play();
 		//System.out.println(play(new AdvancedGinRummyPlayer(), new SimpleGinRummyPlayer(), 100000));
-		roundCsv("roundData.csv",new SimpleGinRummyPlayer(),1);
+		roundCsv("roundData.csv",new SimpleGinRummyPlayer(),100);
 		
 	}
 	
