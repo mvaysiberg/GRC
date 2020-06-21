@@ -17,12 +17,19 @@ public class SimpleGRCPlayerRoundData implements GinRummyPlayer{
 	private int deadwood;
 	private ArrayList<ArrayList<String>> rows;
 	private FileWriter csvWriter;
+	private int gameNum;
+	private boolean addedGame;
 	
 	public SimpleGRCPlayerRoundData(FileWriter f) {
+		gameNum = 1;
+		addedGame = false;
 		csvWriter = f;
 	}
 	@Override
 	public void startGame(int playerNum, int startingPlayerNum, Card[] cards) {
+		if (addedGame)
+			++gameNum;
+		addedGame = false;
 		roundNum = 0;
 		this.playerNum = playerNum;
 		this.startingPlayerNum = startingPlayerNum;
@@ -111,17 +118,14 @@ public class SimpleGRCPlayerRoundData implements GinRummyPlayer{
 		if (roundNum == 1) {
 			//rows = Arrays.asList(Arrays.asList(Integer.toString(roundNum), Integer.toString(deadwood)));
 			rows = new ArrayList<ArrayList<String>>();
-			ArrayList<String> row = new ArrayList<String>();
-			row.add(Integer.toString(roundNum));
-			row.add(Integer.toString(deadwood));
-			rows.add(row);
-		}else {
-			//rows.add(Arrays.asList(Integer.toString(roundNum), Integer.toString(deadwood)));
-			ArrayList<String> row = new ArrayList<String>();
-			row.add(Integer.toString(roundNum));
-			row.add(Integer.toString(deadwood));
-			rows.add(row);
 		}
+		//rows.add(Arrays.asList(Integer.toString(roundNum), Integer.toString(deadwood)));
+		ArrayList<String> row = new ArrayList<String>();
+		row.add(Integer.toString(gameNum));
+		row.add(Integer.toString(roundNum));
+		row.add(Integer.toString(deadwood));
+		rows.add(row);
+		
 		
 		ArrayList<ArrayList<ArrayList<Card>>> bestMeldSets = GinRummyUtil.cardsToBestMeldSets(cards);
 		if (!opponentKnocked && (bestMeldSets.isEmpty() || GinRummyUtil.getDeadwoodPoints(bestMeldSets.get(0), cards) > GinRummyUtil.MAX_DEADWOOD))
@@ -132,7 +136,7 @@ public class SimpleGRCPlayerRoundData implements GinRummyPlayer{
 			csvWriter.append(String.join(",", rowData));
 			csvWriter.append("\n");
 		}
-		
+		addedGame = true;
 		}catch(Exception e) {
 			System.out.println(e.toString());
 		}

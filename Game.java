@@ -25,6 +25,8 @@ public class Game {
 	public static void roundCsv(String fileName, GinRummyPlayer p1, int x) {
 		try {
 			FileWriter csvWriter = new FileWriter(fileName);
+			csvWriter.append("Game");
+			csvWriter.append(",");
 			csvWriter.append("Round");
 			csvWriter.append(",");
 			csvWriter.append("Deadwood");
