@@ -2,6 +2,11 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from scipy import stats
+from scipy.optimize import curve_fit
+
+
+def exponential(x, a, b, c):
+    return a*np.exp(-b*x) + c
 
 data = pd.read_csv("roundData.csv")
 
@@ -20,7 +25,6 @@ for i in range(1,games+1):
             fill_data["Deadwood"].append(min_dwood)
 FD = pd.DataFrame(fill_data)
 data = data.append(FD,ignore_index=True).sort_values(by=["Game","Round"])
-print(data)
 
 rounds = data["Round"].to_numpy()
 unique_rounds = np.unique(rounds)
@@ -36,7 +40,10 @@ plt.scatter(unique_rounds,averages)
 
 slope, intercept, rvalue, pvalue, stderr = stats.linregress(unique_rounds,averages)
 plt.plot(unique_rounds,slope*unique_rounds + intercept, color="RED")
+popt, pcov = curve_fit(exponential,unique_rounds,averages)
+plt.plot(unique_rounds,exponential(unique_rounds,*popt), color="PURPLE")
 plt.show()
 
 print("Num Sub-games played: %d" %(np.count_nonzero(rounds == 1)))
-print("correlation: %f\npvalue: %f\nstderr: %f" %(rvalue,pvalue,stderr))
+print("LINEAR REGRESSION correlation: %f pvalue: %f stderr: %f" %(rvalue,pvalue,stderr))
+print("Exponential Fit covariance: ",pcov)
