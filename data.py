@@ -35,6 +35,7 @@ plt.ylabel("Deadwood")
 plt.xlabel("Round #")
 plt.title("Deadwood per Round")
 
+avg = data.groupby("Round")["Deadwood"].mean()
 averages = data.groupby("Round")["Deadwood"].mean().to_numpy()
 plt.scatter(unique_rounds,averages)
 
@@ -42,8 +43,10 @@ slope, intercept, rvalue, pvalue, stderr = stats.linregress(unique_rounds,averag
 plt.plot(unique_rounds,slope*unique_rounds + intercept, color="RED")
 popt, pcov = curve_fit(exponential,unique_rounds,averages)
 plt.plot(unique_rounds,exponential(unique_rounds,*popt), color="PURPLE")
+plt.plot(unique_rounds,10*np.ones(len(unique_rounds)),color="YELLOW")
 plt.show()
 
 print("Num Sub-games played: %d" %(np.count_nonzero(rounds == 1)))
 print("LINEAR REGRESSION correlation: %f pvalue: %f stderr: %f" %(rvalue,pvalue,stderr))
 print("Exponential Fit covariance: ",pcov)
+print("Exponential data:",popt)

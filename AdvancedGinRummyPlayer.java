@@ -1,11 +1,12 @@
 import java.util.ArrayList;
-
+import java.math.*;
 import java.util.HashSet;
 
 public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	private int playerNum;
 	private int startingPlayerNum;
 	private int randomSetSize;
+	private int roundNum;
 	private ArrayList<Card> hand;
 	private ArrayList<Card> opponentHand;
 	private HashSet<Card> seenCards;
@@ -37,7 +38,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			seenCards.add(c);
 			insertSorted(c, hand);
 		}
-		
+		roundNum = 0;
 		lastDrawnCard = null;
 		opponentHand = new ArrayList<Card>();
 		updateMeldsDeadWood();
@@ -118,6 +119,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	@Override
 	public ArrayList<ArrayList<Card>> getFinalMelds() {
 		// TODO Auto-generated method stub
+		++roundNum;
 		if (deadWood == 0) { //auto knocks when gin
 			return bestMelds.get(0);
 		}else if (opponentKnocked) { //need to test, very bug prone!!!
@@ -153,7 +155,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				}
 				return minMelds;
 			}
-		} else if (deadWood <= 10 && !opponentKnocked) { //we knocked (knock as soon as possible basic strategy)
+		} else if (deadWood <= dWoodFunc(roundNum) -9 && deadWood <= GinRummyUtil.MAX_DEADWOOD && !opponentKnocked) { //we knocked 
 			ArrayList<ArrayList<Card>> bestMeld = bestMelds.get(0);
 			int opponentMaxDeadwood = 0;
 			for (ArrayList<ArrayList<Card>> meldSet: bestMelds) {
@@ -554,5 +556,9 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			ret.add(new Card(rank +1, suit));
 		}
 		return ret;
+	}
+	
+	private int dWoodFunc(int n) {
+		return (int) Math.round(53.88331799*Math.exp(-0.22199779*n) + 4.45358599);
 	}
 }
