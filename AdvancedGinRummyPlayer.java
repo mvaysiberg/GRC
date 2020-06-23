@@ -57,11 +57,14 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	@Override
 	public boolean willDrawFaceUpCard(Card card) {
 		// TODO Auto-generated method stub
+		updateMeldsDeadWood();
+		updateWantCards();
 		lastDrawnCard = null;
 		//logic to decide whether to take the card from the discarded set
 		if (!seenCards.contains(card)) //first turn
 				seenCards.add(card);
-		
+		if (deadWood == 0) //will draw a card and discard it immediately to gin
+			return false;
 		if (hashSetContains(wantCards,card)) { //card will be added to a run/set
 			tookFaceup = true;
 			return true;
@@ -358,6 +361,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		return potentialRun;
 	}
 	private Card discard(ArrayList<Card> h) { //gets card to discard from current hand
+		updateMeldsDeadWood();
 		ArrayList<Card> potentialDiscards = new ArrayList<Card>();
 		for (Card handcard: h) {
 			boolean inMeld = false;
@@ -463,11 +467,12 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		int maxUnmatched = (maxUnmatchedDwood > maxUnmatchedPotentials) ? maxUnmatchedDwood : maxUnmatchedPotentials;
 		
 		if (maxMatched - maxUnmatched >= 7 || maxUnmatched == -1) {
-			if (deadlist.isEmpty() && meldlist.isEmpty()) {
+			/*if (deadlist.isEmpty() && meldlist.isEmpty()) {
+				System.out.println(lastDrawnCard);
 				System.out.println(potentialDiscards);
 				System.out.println(h);
 				System.out.println(hand);
-			}
+			}*/
 			 return (maxMatchedDwood >= maxMatchedPotentials && !deadlist.isEmpty())? deadlist.get(0): meldlist.get(0);
 		} else {
 			if (maxUnmatchedDwood >= 6)
