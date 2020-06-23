@@ -5,7 +5,8 @@ public class Game {
 	public static void main(String[] args) {
 		//GinRummyGame.setPlayVerbose(true);
 		//new GinRummyGame(new AdvancedGinRummyPlayer(), new SimpleGinRummyPlayer()).play();
-		System.out.println(play(new AdvancedGinRummyPlayer(), new SimpleGinRummyPlayer(), 100000));
+		//System.out.println(play(new AdvancedGinRummyPlayer(), new SimpleGinRummyPlayer(), 100000));
+		System.out.println("THRESHOLD 10 vs THRESHOLD 9: " + play(new AdvancedGinRummyPlayer(10),new AdvancedGinRummyPlayer(9),100000));
 		//roundCsv("roundData.csv",new SimpleGinRummyPlayer(),500);
 		
 	}

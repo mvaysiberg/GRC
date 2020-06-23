@@ -22,8 +22,16 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	private HashSet<Card> sets;
 	private ArrayList<ArrayList<Card>> opponentFinalMelds;
 	private ArrayList<Card> opponentDiscards;
+	private int KNOCK_THRESHOLD;
 	//private int numMelds;
 	//private int numPotentials;
+	public AdvancedGinRummyPlayer() {
+		KNOCK_THRESHOLD = 9;
+	}
+	public AdvancedGinRummyPlayer(int knockThreshold) { //made for the sole purpose of testing knock algorithm, delete in final version
+		KNOCK_THRESHOLD = knockThreshold;
+	}
+	
 	@Override
 	public void startGame(int playerNum, int startingPlayerNum, Card[] cards) {
 		// TODO Auto-generated method stub
@@ -155,7 +163,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				}
 				return minMelds;
 			}
-		} else if (deadWood <= dWoodFunc(roundNum) -9 && deadWood <= GinRummyUtil.MAX_DEADWOOD && !opponentKnocked) { //we knocked 
+		} else if (deadWood <= dWoodFunc(roundNum) -KNOCK_THRESHOLD && deadWood <= GinRummyUtil.MAX_DEADWOOD && !opponentKnocked) { //we knocked 
 			ArrayList<ArrayList<Card>> bestMeld = bestMelds.get(0);
 			int opponentMaxDeadwood = 0;
 			for (ArrayList<ArrayList<Card>> meldSet: bestMelds) {
@@ -455,6 +463,11 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		int maxUnmatched = (maxUnmatchedDwood > maxUnmatchedPotentials) ? maxUnmatchedDwood : maxUnmatchedPotentials;
 		
 		if (maxMatched - maxUnmatched >= 7 || maxUnmatched == -1) {
+			if (deadlist.isEmpty() && meldlist.isEmpty()) {
+				System.out.println(potentialDiscards);
+				System.out.println(h);
+				System.out.println(hand);
+			}
 			 return (maxMatchedDwood >= maxMatchedPotentials && !deadlist.isEmpty())? deadlist.get(0): meldlist.get(0);
 		} else {
 			if (maxUnmatchedDwood >= 6)
