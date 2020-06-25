@@ -1,5 +1,5 @@
 import java.util.ArrayList;
-
+import java.math.*;
 import java.util.HashSet;
 
 import java.util.Vector;
@@ -83,6 +83,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	private int playerNum;
 	private int startingPlayerNum;
 	private int randomSetSize;
+	private int roundNum;
 	private ArrayList<Card> hand;
 	private ArrayList<Card> opponentHand;
 	private HashSet<Card> seenCards;
@@ -98,8 +99,16 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	private HashSet<Card> sets;
 	private ArrayList<ArrayList<Card>> opponentFinalMelds;
 	private ArrayList<Card> opponentDiscards;
+	private int KNOCK_THRESHOLD;
 	//private int numMelds;
 	//private int numPotentials;
+	public AdvancedGinRummyPlayer() {
+		KNOCK_THRESHOLD = 9;
+	}
+	public AdvancedGinRummyPlayer(int knockThreshold) { //made for the sole purpose of testing knock algorithm, delete in final version
+		KNOCK_THRESHOLD = knockThreshold;
+	}
+	
 	@Override
 	public void startGame(int playerNum, int startingPlayerNum, Card[] cards) {
 		// TODO Auto-generated method stub
@@ -114,7 +123,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			seenCards.add(c);
 			insertSorted(c, hand);
 		}
-		
+		roundNum = 0;
 		lastDrawnCard = null;
 		opponentHand = new ArrayList<Card>();
 		updateMeldsDeadWood();
@@ -125,11 +134,14 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	@Override
 	public boolean willDrawFaceUpCard(Card card) {
 		// TODO Auto-generated method stub
+		updateMeldsDeadWood();
+		updateWantCards();
 		lastDrawnCard = null;
 		//logic to decide whether to take the card from the discarded set
 		if (!seenCards.contains(card)) //first turn
 				seenCards.add(card);
-		
+		if (deadWood == 0) //will draw a card and discard it immediately to gin
+			return false;
 		if (hashSetContains(wantCards,card)) { //card will be added to a run/set
 			tookFaceup = true;
 			return true;
@@ -195,6 +207,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	@Override
 	public ArrayList<ArrayList<Card>> getFinalMelds() {
 		// TODO Auto-generated method stub
+		++roundNum;
 		if (deadWood == 0) { //auto knocks when gin
 			return bestMelds.get(0);
 		}else if (opponentKnocked) { //need to test, very bug prone!!!
@@ -230,7 +243,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				}
 				return minMelds;
 			}
-		} else if (deadWood <= 10 && !opponentKnocked) { //we knocked (knock as soon as possible basic strategy)
+		} else if (deadWood <= dWoodFunc(roundNum) -KNOCK_THRESHOLD && deadWood <= GinRummyUtil.MAX_DEADWOOD && !opponentKnocked) { //we knocked 
 			ArrayList<ArrayList<Card>> bestMeld = bestMelds.get(0);
 			int opponentMaxDeadwood = 0;
 			for (ArrayList<ArrayList<Card>> meldSet: bestMelds) {
@@ -425,6 +438,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		return potentialRun;
 	}
 	private Card discard(ArrayList<Card> h) { //gets card to discard from current hand
+		updateMeldsDeadWood();
 		ArrayList<Card> potentialDiscards = new ArrayList<Card>();
 		for (Card handcard: h) {
 			boolean inMeld = false;
@@ -530,6 +544,12 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		int maxUnmatched = (maxUnmatchedDwood > maxUnmatchedPotentials) ? maxUnmatchedDwood : maxUnmatchedPotentials;
 		
 		if (maxMatched - maxUnmatched >= 7 || maxUnmatched == -1) {
+			/*if (deadlist.isEmpty() && meldlist.isEmpty()) {
+				System.out.println(lastDrawnCard);
+				System.out.println(potentialDiscards);
+				System.out.println(h);
+				System.out.println(hand);
+			}*/
 			 return (maxMatchedDwood >= maxMatchedPotentials && !deadlist.isEmpty())? deadlist.get(0): meldlist.get(0);
 		} else {
 			if (maxUnmatchedDwood >= 6)
@@ -631,5 +651,9 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			ret.add(new Card(rank +1, suit));
 		}
 		return ret;
+	}
+	
+	private int dWoodFunc(int n) {
+		return (int) Math.round(53.88331799*Math.exp(-0.22199779*n) + 4.45358599);
 	}
 }

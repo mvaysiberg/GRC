@@ -1,10 +1,14 @@
+import java.io.FileWriter;
 
 public class Game {
 
 	public static void main(String[] args) {
 		//GinRummyGame.setPlayVerbose(true);
 		//new GinRummyGame(new AdvancedGinRummyPlayer(), new SimpleGinRummyPlayer()).play();
-		System.out.println(play(new AdvancedGinRummyPlayer(), new SimpleGinRummyPlayer(), 100000));
+		//System.out.println(play(new AdvancedGinRummyPlayer(), new SimpleGinRummyPlayer(), 100000));
+		System.out.println("THRESHOLD 10 vs THRESHOLD 9: " + play(new AdvancedGinRummyPlayer(10),new AdvancedGinRummyPlayer(9),100000));
+		//roundCsv("roundData.csv",new SimpleGinRummyPlayer(),500);
+		
 	}
 	
 	public static float play(GinRummyPlayer p0, GinRummyPlayer p1, int x) {
@@ -18,4 +22,23 @@ public class Game {
 		}
 		return p0_wins;
 	}
+	
+	public static void roundCsv(String fileName, GinRummyPlayer p1, int x) {
+		try {
+			FileWriter csvWriter = new FileWriter(fileName);
+			csvWriter.append("Game");
+			csvWriter.append(",");
+			csvWriter.append("Round");
+			csvWriter.append(",");
+			csvWriter.append("Deadwood");
+			csvWriter.append("\n");
+			
+			play(new SimpleGRCPlayerRoundData(csvWriter), p1,x);
+			csvWriter.flush();
+			csvWriter.close();
+			} catch(Exception e) {
+				System.out.println(e.toString());
+			}
+	}
+	
 }
