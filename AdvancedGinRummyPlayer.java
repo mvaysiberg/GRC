@@ -272,19 +272,25 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				count++;
 				i++;
 			}
+			ArrayList<Card> possibleS = new ArrayList<Card>();
 			if (count == 2 || count == 3) {
-				if (!suits.contains(0))
+				if (!suits.contains(0)) {
 					wantCards.add(new Card(cardNum,0));
-				if (!suits.contains(1))
+					possibleS.add(new Card(cardNum,0));
+				}if (!suits.contains(1)) {
 					wantCards.add(new Card(cardNum,1));
-				if (!suits.contains(2))
+					possibleS.add(new Card(cardNum,1));
+				}if (!suits.contains(2)) {
 					wantCards.add(new Card(cardNum,2));
-				if (!suits.contains(3))
+					possibleS.add(new Card(cardNum,2));
+				}if (!suits.contains(3)) {
 					wantCards.add(new Card(cardNum,3));
+					possibleS.add(new Card(cardNum,3));
+				}
 			}
-			if (count == 2) {
+			if (count == 2 && possibleMeld(possibleS)) {
 				for (Integer suit: suits) {
-					if (!potentialSet.contains(new Card(cardNum,suit)))
+					if (!hashSetContains(potentialSet,new Card(cardNum,suit)))
 						potentialSet.add(new Card(cardNum,suit));
 				}
 			}
@@ -319,11 +325,14 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				x++;
 			}
 			if (count >= 2) {
-				if (ranks.get(0) != 0) //the minimal card in a run is an ace
+				ArrayList<Card> possibleR = new ArrayList<Card>();
+				if (ranks.get(0) != 0) {//the minimal card in a run is an ace
 					wantCards.add(new Card(ranks.get(0)-1,suit));
-				if (ranks.get(ranks.size() -1) != 12) //the maximal card in a run is a king
+					possibleR.add(new Card(ranks.get(0)-1,suit));
+				}if (ranks.get(ranks.size() -1) != 12) { //the maximal card in a run is a king
 					wantCards.add(new Card(ranks.get(ranks.size()-1)+1,suit));
-				if (count == 2) {
+					possibleR.add(new Card(ranks.get(ranks.size()-1)+1,suit));
+				}if (count == 2 && possibleMeld(possibleR)) {
 					for (Integer rank: ranks) {
 						potentialRun.add(new Card(rank,suit));
 					}
@@ -333,12 +342,14 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				startingRank = newHand.get(i).rank;
 				x = i;
 				while (x < newHand.size() && newHand.get(x).rank <= startingRank + 2) {
-					if (newHand.get(x).suit == suit && newHand.get(x).rank == startingRank + 2) {
+					if (compareCards(newHand.get(x), new Card(startingRank +2,suit))) {
 						wantCards.add(new Card(startingRank + 1, suit));
 						//potentialHardRun.add(new Card(startingRank,suit));
 						//potentialHardRun.add(new Card(startingRank + 2, suit));
-						potentialRun.add(new Card(startingRank,suit));
-						potentialRun.add(new Card(startingRank + 2, suit));
+						if (!hashSetContains(seenCards,new Card(startingRank+1,suit))) {
+							potentialRun.add(new Card(startingRank,suit));
+							potentialRun.add(new Card(startingRank + 2, suit));
+						}
 						//++numPotentials; //this is a potential run 
 						break;
 					}
@@ -578,5 +589,14 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	
 	private int dWoodFunc(int n) {
 		return (int) Math.round(53.88331799*Math.exp(-0.22199779*n) + 4.45358599);
+	}
+	
+	private boolean possibleMeld(ArrayList<Card> wantMeld){
+		int matchNum = 0;
+		for (Card c: wantMeld) {
+			if (hashSetContains(seenCards,c))
+				++matchNum;
+		}
+		return matchNum <2;
 	}
 }
