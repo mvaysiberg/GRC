@@ -17,7 +17,8 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	private HashSet<Card> wantCards;
 	private HashSet<Card> potentialSet;
 	private HashSet<Card> potentialRun;
-	//private HashSet<Card> potentialHardRun;
+	private HashSet<Card> potentialHardRun;
+	private HashSet<Card> potentialHardSet;
 	private boolean opponentKnocked;
 	private HashSet<Card> sets;
 	private ArrayList<ArrayList<Card>> opponentFinalMelds;
@@ -263,6 +264,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	private void updateWantCards() {
 		wantCards = new HashSet<Card>();
 		potentialSet = new  HashSet<Card>();
+		potentialHardSet = new HashSet<Card>();
 		for (int i = 0; i < hand.size(); ++i) { //this for loop calculates what cards we want to add to sets (if we have 2 or 3 cards of the same rank, look for the last 1 or 2)
 			int cardNum = hand.get(i).rank;
 			int count = 0;
@@ -288,10 +290,12 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 					possibleS.add(new Card(cardNum,3));
 				}
 			}
-			if (count == 2 && possibleMeld(possibleS)) {
+			if (count == 2 && isPossibleMeld(possibleS)) {
 				for (Integer suit: suits) {
 					if (!hashSetContains(potentialSet,new Card(cardNum,suit)))
 						potentialSet.add(new Card(cardNum,suit));
+					if (isHardMeld(possibleS))//create another condition for normal set once discard logic is added
+						potentialHardSet.add(new Card(cardNum,suit));
 				}
 			}
 			i--;
@@ -302,7 +306,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				newHand.add(c);
 		}
 		potentialRun = new HashSet<Card>();
-		//potentialHardRun = new HashSet<Card>();
+		potentialHardRun = new HashSet<Card>();
 		for (int i = 0; i < newHand.size(); ++i) { //this for loop calculates what cards we want to add to runs or form runs
 			int suit = newHand.get(i).suit;
 			int startingRank = newHand.get(i).rank;
@@ -332,9 +336,11 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				}if (ranks.get(ranks.size() -1) != 12) { //the maximal card in a run is a king
 					wantCards.add(new Card(ranks.get(ranks.size()-1)+1,suit));
 					possibleR.add(new Card(ranks.get(ranks.size()-1)+1,suit));
-				}if (count == 2 && possibleMeld(possibleR)) {
+				}if (count == 2 && isPossibleMeld(possibleR)) {
 					for (Integer rank: ranks) {
 						potentialRun.add(new Card(rank,suit));
+						if (isHardMeld(possibleR)) //create another condition for normal run once discard logic is added
+							potentialHardRun.add(new Card(rank,suit));
 					}
 					//++numPotentials; //this is a potential run
 				}
@@ -344,11 +350,11 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				while (x < newHand.size() && newHand.get(x).rank <= startingRank + 2) {
 					if (compareCards(newHand.get(x), new Card(startingRank +2,suit))) {
 						wantCards.add(new Card(startingRank + 1, suit));
-						//potentialHardRun.add(new Card(startingRank,suit));
-						//potentialHardRun.add(new Card(startingRank + 2, suit));
 						if (!hashSetContains(seenCards,new Card(startingRank+1,suit))) {
-							potentialRun.add(new Card(startingRank,suit));
-							potentialRun.add(new Card(startingRank + 2, suit));
+							potentialRun.add(new Card(startingRank,suit)); //can comment out these lines once added new logic in discard algorithm
+							potentialRun.add(new Card(startingRank + 2, suit));//
+							potentialHardRun.add(new Card(startingRank,suit));
+							potentialHardRun.add(new Card(startingRank + 2, suit));
 						}
 						//++numPotentials; //this is a potential run 
 						break;
@@ -591,12 +597,21 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		return (int) Math.round(53.88331799*Math.exp(-0.22199779*n) + 4.45358599);
 	}
 	
-	private boolean possibleMeld(ArrayList<Card> wantMeld){
+	private boolean isPossibleMeld(ArrayList<Card> wantMeld){
 		int matchNum = 0;
 		for (Card c: wantMeld) {
 			if (hashSetContains(seenCards,c))
 				++matchNum;
 		}
 		return matchNum <2;
+	}
+	
+	private boolean isHardMeld(ArrayList<Card> wantMeld) {
+		int matchNum = 0;
+		for (Card c: wantMeld) {
+			if (hashSetContains(seenCards, c))
+				++matchNum;
+		}
+		return matchNum == 1;
 	}
 }
