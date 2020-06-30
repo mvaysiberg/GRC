@@ -412,11 +412,15 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		
 		int maxUnmatchedDwood = -1;
 		int maxUnmatchedPotentials  = -1;
+		int maxUnmatchedHardP = -1;
 		
 		ArrayList<Card> potentials = new ArrayList<Card>();
 		ArrayList<Card> dead = new ArrayList<Card>();
+		ArrayList<Card> hardP = new ArrayList<Card>();
 		for (Card c: potentialDiscards) {
-			if (hashSetContains(potentialSet,c) || hashSetContains(potentialRun,c))
+			if (hashSetContains(potentialHardSet,c) || hashSetContains(potentialHardRun,c))
+				insertSorted(c,hardP);
+			else if (hashSetContains(potentialSet,c) || hashSetContains(potentialRun,c))
 				insertSorted(c, potentials);
 			else
 				insertSorted(c,dead);
@@ -424,6 +428,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		
 		int pIndex = potentials.size() -1;
 		int dIndex = dead.size() -1;
+		int hIndex = hardP.size() -1;
 		
 		while (pIndex >= 0) { //find the greatest potential set/run that does not match the opponent's hand
 			if (!matches(potentials.get(pIndex),opponentHand))
@@ -437,10 +442,18 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			--dIndex;
 		}
 		
+		while (hIndex >=0) { //find greatest hard potential meld that does not match the opponent's hand
+			if(!matches(hardP.get(hIndex),opponentHand))
+				break;
+			--dIndex;
+		}
+		
 		if (dIndex >= 0) 
 			maxUnmatchedDwood  = GinRummyUtil.getDeadwoodPoints(dead.get(dIndex));
 		if (pIndex >= 0)
 			maxUnmatchedPotentials  = GinRummyUtil.getDeadwoodPoints(potentials.get(pIndex));
+		if(hIndex >= 0)
+			maxUnmatchedHardP = GinRummyUtil.getDeadwoodPoints(hardP.get(hIndex));
 		
 		ArrayList<Integer>deadWood = new ArrayList<Integer>();
 		for (Card c: potentialDiscards) {
@@ -480,8 +493,11 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		//System.out.println("potentials" + deadlist + " " + meldlist);
 		//System.out.println(maxDeadDeadWood + " " + maxPotentialMeldDeadWood);
 		//
+		
+		int maxUnmatchedMelds = (maxUnmatchedHardP >= maxUnmatchedPotentials)? maxUnmatchedHardP : maxUnmatchedPotentials;
+		
 		int maxMatched = (maxMatchedDwood > maxMatchedPotentials)? maxMatchedDwood : maxMatchedPotentials;
-		int maxUnmatched = (maxUnmatchedDwood > maxUnmatchedPotentials) ? maxUnmatchedDwood : maxUnmatchedPotentials;
+		int maxUnmatched = (maxUnmatchedDwood > maxUnmatchedMelds) ? maxUnmatchedDwood : maxUnmatchedMelds;
 		
 		if (maxMatched - maxUnmatched >= 7 || maxUnmatched == -1) {
 			/*if (deadlist.isEmpty() && meldlist.isEmpty()) {
@@ -494,11 +510,15 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		} else {
 			if (maxUnmatchedDwood >= 6)
 				return dead.get(dIndex);
+			else if (maxUnmatchedHardP >= 6)
+				return hardP.get(hIndex);
 			else if (maxUnmatchedPotentials >= 6)
 				return potentials.get(pIndex);
 			else {
 				if (dIndex >= 0)
 					return dead.get(dIndex);
+				else if(hIndex >= 0)
+					return hardP.get(hIndex);
 				else
 					return potentials.get(pIndex);
 			}
