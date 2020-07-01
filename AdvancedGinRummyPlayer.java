@@ -418,9 +418,12 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		ArrayList<Card> dead = new ArrayList<Card>();
 		ArrayList<Card> hardP = new ArrayList<Card>();
 		for (Card c: potentialDiscards) {
-			if (hashSetContains(potentialHardSet,c) || hashSetContains(potentialHardRun,c))
-				insertSorted(c,hardP);
-			else if (hashSetContains(potentialSet,c) || hashSetContains(potentialRun,c))
+			if (hashSetContains(potentialHardSet,c) || hashSetContains(potentialHardRun,c)) {
+				if (GinRummyUtil.getDeadwoodPoints(c)>=9)
+					insertSorted(c,dead);
+				else
+					insertSorted(c,hardP);
+			}else if (hashSetContains(potentialSet,c) || hashSetContains(potentialRun,c))
 				insertSorted(c, potentials);
 			else
 				insertSorted(c,dead);
