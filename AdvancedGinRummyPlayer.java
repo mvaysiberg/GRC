@@ -78,14 +78,24 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		lastDrawnCard = card; //pretend that we drew the card for the sake of the algorithm
 		Card willDiscard = discard(tempHand);
 		lastDrawnCard = null;
-		
-		if (willDiscard != null && GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >= 7) {
-			tookFaceup = true;
-			return true;
+		if (deadWood <= 25) {
+			if (willDiscard != null && GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >= 7) {
+				tookFaceup = true;
+				return true;
+			}else {
+				randomSetSize--;
+				tookFaceup = false;
+				return false;
+			}
 		}else {
-			randomSetSize--;
-			tookFaceup = false;
-			return false;
+			if (willDiscard != null && GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >= 7) {
+				tookFaceup = true;
+				return true;
+			}else {
+				randomSetSize--;
+				tookFaceup = false;
+				return false;
+			}
 		}
 	}
 
@@ -208,7 +218,10 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	@Override
 	public void reportScores(int[] scores) {
 		// TODO Auto-generated method stub
-		gameScores.add(scores);
+		if (scores[0] >= GinRummyUtil.GOAL_SCORE || scores[1] >= GinRummyUtil.GOAL_SCORE) { //only add score after the end of the game
+			gameScores.add(scores);
+			//System.out.println(scores[0] + " " + scores[1]);
+		}
 	}
 
 	@Override
