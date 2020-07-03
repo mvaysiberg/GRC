@@ -4,6 +4,7 @@ import java.util.HashSet;
 
 public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	private int playerNum;
+	private ArrayList<int[]> gameScores;
 	private int startingPlayerNum;
 	private int randomSetSize;
 	private int roundNum;
@@ -28,9 +29,11 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	//private int numPotentials;
 	public AdvancedGinRummyPlayer() {
 		KNOCK_THRESHOLD = 9;
+		gameScores = new ArrayList<int[]>();
 	}
 	public AdvancedGinRummyPlayer(int knockThreshold) { //made for the sole purpose of testing knock algorithm, delete in final version
 		KNOCK_THRESHOLD = knockThreshold;
+		gameScores = new ArrayList<int[]>();
 	}
 	
 	@Override
@@ -205,7 +208,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	@Override
 	public void reportScores(int[] scores) {
 		// TODO Auto-generated method stub
-		
+		gameScores.add(scores);
 	}
 
 	@Override
