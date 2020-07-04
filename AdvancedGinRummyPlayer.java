@@ -4,6 +4,7 @@ import java.util.HashSet;
 
 public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	private int playerNum;
+	private ArrayList<int[]> gameScores;
 	private int startingPlayerNum;
 	private int randomSetSize;
 	private int roundNum;
@@ -28,9 +29,11 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	//private int numPotentials;
 	public AdvancedGinRummyPlayer() {
 		KNOCK_THRESHOLD = 9;
+		gameScores = new ArrayList<int[]>();
 	}
 	public AdvancedGinRummyPlayer(int knockThreshold) { //made for the sole purpose of testing knock algorithm, delete in final version
 		KNOCK_THRESHOLD = knockThreshold;
+		gameScores = new ArrayList<int[]>();
 	}
 	
 	@Override
@@ -51,7 +54,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		lastDrawnCard = null;
 		opponentHand = new ArrayList<Card>();
 		updateMeldsDeadWood();
-		updateWantCards();
+		updateWantCards(hand);
 		opponentKnocked = false;
 	}
 
@@ -59,7 +62,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	public boolean willDrawFaceUpCard(Card card) {
 		// TODO Auto-generated method stub
 		updateMeldsDeadWood();
-		updateWantCards();
+		updateWantCards(hand);
 		lastDrawnCard = null;
 		//logic to decide whether to take the card from the discarded set
 		if (!seenCards.contains(card)) //first turn
@@ -73,16 +76,27 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		ArrayList<Card> tempHand = new ArrayList<Card>(hand);
 		insertSorted(card,tempHand);
 		lastDrawnCard = card; //pretend that we drew the card for the sake of the algorithm
+		updateWantCards(tempHand);//this will be undone after report draw anyway
 		Card willDiscard = discard(tempHand);
 		lastDrawnCard = null;
-		
-		if (willDiscard != null && GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >= 7) {
-			tookFaceup = true;
-			return true;
+		if (deadWood <= 25) {
+			if (willDiscard != null && GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >= 7) {
+				tookFaceup = true;
+				return true;
+			}else {
+				randomSetSize--;
+				tookFaceup = false;
+				return false;
+			}
 		}else {
-			randomSetSize--;
-			tookFaceup = false;
-			return false;
+			if (willDiscard != null && GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >= 7 && (hashSetContains(potentialSet, card) || hashSetContains(potentialRun,card))) {
+				tookFaceup = true;
+				return true;
+			}else {
+				randomSetSize--;
+				tookFaceup = false;
+				return false;
+			}
 		}
 	}
 
@@ -96,7 +110,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			//drawncard is inserted into hand in the proper sorted position
 			insertSorted(drawnCard,hand);
 			updateMeldsDeadWood();
-			updateWantCards();
+			updateWantCards(hand);
 		}else {
 			if (drawnCard == null) { //opponent drew from random set, no knowledge of what the card is
 				randomSetSize--;
@@ -113,7 +127,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		Card ret = discard(hand);
 		hand.remove(ret);
 		updateMeldsDeadWood();
-		updateWantCards();
+		updateWantCards(hand);
 		return ret;
 	}
 
@@ -205,7 +219,10 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	@Override
 	public void reportScores(int[] scores) {
 		// TODO Auto-generated method stub
-		
+		if (scores[0] >= GinRummyUtil.GOAL_SCORE || scores[1] >= GinRummyUtil.GOAL_SCORE) { //only add score after the end of the game
+			gameScores.add(scores);
+			//System.out.println(scores[0] + " " + scores[1]);
+		}
 	}
 
 	@Override
@@ -261,16 +278,16 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 		}
 	}
 	
-	private void updateWantCards() {
+	private void updateWantCards(ArrayList<Card> h) {
 		wantCards = new HashSet<Card>();
 		potentialSet = new  HashSet<Card>();
 		potentialHardSet = new HashSet<Card>();
-		for (int i = 0; i < hand.size(); ++i) { //this for loop calculates what cards we want to add to sets (if we have 2 or 3 cards of the same rank, look for the last 1 or 2)
-			int cardNum = hand.get(i).rank;
+		for (int i = 0; i < h.size(); ++i) { //this for loop calculates what cards we want to add to sets (if we have 2 or 3 cards of the same rank, look for the last 1 or 2)
+			int cardNum = h.get(i).rank;
 			int count = 0;
 			HashSet<Integer> suits = new HashSet<Integer>();
-			while (i < hand.size() && hand.get(i).rank == cardNum) {
-				suits.add(hand.get(i).suit);
+			while (i < h.size() && h.get(i).rank == cardNum) {
+				suits.add(h.get(i).suit);
 				count++;
 				i++;
 			}
@@ -301,7 +318,7 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 			i--;
 		}
 		ArrayList<Card> newHand = new ArrayList<Card>(); //create a new hand without sets so that avoid trying to form runs with current sets
-		for (Card c: hand) {
+		for (Card c: h) {
 			if (!hashSetContains(sets,c))
 				newHand.add(c);
 		}
