@@ -89,7 +89,11 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 				return false;
 			}
 		}else {
-			if (willDiscard != null && GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >= 7 && (hashSetContains(potentialSet, card) || hashSetContains(potentialRun,card))) {
+			if (willDiscard != null && GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >=7 &&(hashSetContains(potentialHardSet,card) || hashSetContains(potentialHardRun,card))){
+				tookFaceup = true;
+				return true;
+			}
+			else if (willDiscard != null && GinRummyUtil.getDeadwoodPoints(willDiscard) - GinRummyUtil.getDeadwoodPoints(card) >= 5 && (hashSetContains(potentialSet, card) || hashSetContains(potentialRun,card))) {
 				tookFaceup = true;
 				return true;
 			}else {
