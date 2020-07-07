@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.math.*;
 import java.util.HashSet;
 
-public class AdvancedGinRummyPlayer implements GinRummyPlayer{
+public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	private int playerNum;
 	private ArrayList<int[]> gameScores;
 	private int startingPlayerNum;
@@ -27,11 +27,11 @@ public class AdvancedGinRummyPlayer implements GinRummyPlayer{
 	private int KNOCK_THRESHOLD;
 	//private int numMelds;
 	//private int numPotentials;
-	public AdvancedGinRummyPlayer() {
+	public DynamicGinRummyPlayer() {
 		KNOCK_THRESHOLD = 9;
 		gameScores = new ArrayList<int[]>();
 	}
-	public AdvancedGinRummyPlayer(int knockThreshold) { //made for the sole purpose of testing knock algorithm, delete in final version
+	public DynamicGinRummyPlayer(int knockThreshold) { //made for the sole purpose of testing knock algorithm, delete in final version
 		KNOCK_THRESHOLD = knockThreshold;
 		gameScores = new ArrayList<int[]>();
 	}
