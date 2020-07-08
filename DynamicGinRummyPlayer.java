@@ -5,6 +5,7 @@ import java.util.HashSet;
 public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	private int playerNum;
 	private ArrayList<int[]> gameScores;
+	private int[] prevRoundScore;
 	private int startingPlayerNum;
 	private int randomSetSize;
 	private int roundNum;
@@ -25,6 +26,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	private ArrayList<ArrayList<Card>> opponentFinalMelds;
 	private ArrayList<Card> opponentDiscards;
 	private int KNOCK_THRESHOLD;
+	private int startingDeadWood;
 	//private int numMelds;
 	//private int numPotentials;
 	public DynamicGinRummyPlayer() {
@@ -56,6 +58,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		updateMeldsDeadWood();
 		updateWantCards(hand);
 		opponentKnocked = false;
+		prevRoundScore = new int[]{0,0};
 	}
 
 	@Override
@@ -150,6 +153,8 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	public ArrayList<ArrayList<Card>> getFinalMelds() {
 		// TODO Auto-generated method stub
 		++roundNum;
+		if(roundNum == 1)
+			startingDeadWood = deadWood;
 		if (deadWood == 0) { //auto knocks when gin
 			return bestMelds.get(0);
 		}else if (opponentKnocked) { //need to test, very bug prone!!!
@@ -226,6 +231,22 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		if (scores[0] >= GinRummyUtil.GOAL_SCORE || scores[1] >= GinRummyUtil.GOAL_SCORE) { //only add score after the end of the game
 			gameScores.add(scores);
 			//System.out.println(scores[0] + " " + scores[1]);
+		}
+		
+		if(zScore(startingDeadWood,46.674608,15.094789) <= 1) { //change the knock threshold dynamically
+			int p0Diff = scores[0] - prevRoundScore[0];
+			int p1Diff = scores[1] - prevRoundScore[1];
+			int diff = p0Diff - p1Diff;//difference includes bonus
+			diff = (playerNum == 0)? diff : -1*diff;
+			if (!(p0Diff == 0 && p1Diff == 0)) {//round was not a draw
+				if (opponentKnocked && diff >= 0) //opponent knocks and we undercut
+					KNOCK_THRESHOLD = knockf1(diff - GinRummyUtil.UNDERCUT_BONUS,false,0.1);
+				else if (!opponentKnocked && diff <= 0)  //we knock and opponent undercut
+					KNOCK_THRESHOLD = knockf1(diff,true,0.1);
+				else if (!opponentKnocked && diff >0) { //we knock and we win the round
+					
+				}
+			}
 		}
 	}
 
@@ -634,5 +655,16 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 				++matchNum;
 		}
 		return matchNum == 1;
+	}
+	
+	private double zScore(double x, double mean, double std) {
+		return Math.abs(x-mean)/std;
+	}
+	
+	private int knockf1(int diff, boolean weKnocked, double a) {
+		if (weKnocked)
+			return (int)Math.round(KNOCK_THRESHOLD -a*diff);
+		else
+			return (int) Math.ceil(KNOCK_THRESHOLD + a*diff);
 	}
 }
