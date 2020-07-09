@@ -27,6 +27,8 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	private ArrayList<Card> opponentDiscards;
 	private int KNOCK_THRESHOLD;
 	private int startingDeadWood;
+	private int prevDiff;
+	private int threshold_0;
 	//private int numMelds;
 	//private int numPotentials;
 	public DynamicGinRummyPlayer() {
@@ -36,6 +38,8 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	public DynamicGinRummyPlayer(int knockThreshold) { //made for the sole purpose of testing knock algorithm, delete in final version
 		KNOCK_THRESHOLD = knockThreshold;
 		gameScores = new ArrayList<int[]>();
+		prevDiff = 0;
+		threshold_0 = KNOCK_THRESHOLD;
 	}
 	
 	@Override
@@ -234,19 +238,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		}
 		
 		if(zScore(startingDeadWood,46.674608,15.094789) <= 1) { //change the knock threshold dynamically
-			int p0Diff = scores[0] - prevRoundScore[0];
-			int p1Diff = scores[1] - prevRoundScore[1];
-			int diff = p0Diff - p1Diff;//difference includes bonus
-			diff = (playerNum == 0)? diff : -1*diff;
-			if (!(p0Diff == 0 && p1Diff == 0)) {//round was not a draw
-				if (opponentKnocked && diff >= 0) //opponent knocks and we undercut
-					KNOCK_THRESHOLD = knockf1(diff - GinRummyUtil.UNDERCUT_BONUS,false,0.1);
-				else if (!opponentKnocked && diff <= 0)  //we knock and opponent undercut
-					KNOCK_THRESHOLD = knockf1(diff,true,0.1);
-				else if (!opponentKnocked && diff >0) { //we knock and we win the round
-					
-				}
-			}
+			dynamicKnock(scores);
 		}
 	}
 
@@ -666,5 +658,31 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 			return (int)Math.round(KNOCK_THRESHOLD -a*diff);
 		else
 			return (int) Math.ceil(KNOCK_THRESHOLD + a*diff);
+	}
+	
+	private int avg(int x, int y) { //arithmetic mean rounded to int
+		return (int)Math.round((double)(x + y)/2);
+	}
+	
+	private void dynamicKnock(int[] scores) {
+		int p0Diff = scores[0] - prevRoundScore[0];
+		int p1Diff = scores[1] - prevRoundScore[1];
+		int diff = p0Diff - p1Diff;//difference includes bonus
+		diff = (playerNum == 0)? diff : -1*diff;
+		if (!(p0Diff == 0 && p1Diff == 0)) {//round was not a draw
+			if (opponentKnocked && diff >= 0) //opponent knocks and we undercut
+				KNOCK_THRESHOLD = knockf1(diff - GinRummyUtil.UNDERCUT_BONUS,false,0.1);
+			else if (!opponentKnocked && diff <= 0)  //we knock and opponent undercut
+				KNOCK_THRESHOLD = knockf1(diff,true,0.1);
+			else if (!opponentKnocked && diff >0) { //we knock and we win the round
+				if (diff > prevDiff) {
+					threshold_0 = KNOCK_THRESHOLD;
+					KNOCK_THRESHOLD = knockf1(diff,true,0.1);
+					prevDiff = diff;
+				}else { //overestimated the threshold and make it some type of average of its current state and previous state
+					KNOCK_THRESHOLD = avg(threshold_0,KNOCK_THRESHOLD);
+				}
+			}
+		}
 	}
 }
