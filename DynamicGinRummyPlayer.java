@@ -26,6 +26,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	private ArrayList<ArrayList<Card>> opponentFinalMelds;
 	private ArrayList<Card> opponentDiscards;
 	private int KNOCK_THRESHOLD;
+	private int KNOCK_THRESHOLD_MAX;
 	private int startingDeadWood;
 	private int prevDiff;
 	private int threshold_0;
@@ -34,12 +35,13 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	public DynamicGinRummyPlayer() {
 		KNOCK_THRESHOLD = 9;
 		gameScores = new ArrayList<int[]>();
+		prevDiff = 0;
+		threshold_0 = KNOCK_THRESHOLD;
+		KNOCK_THRESHOLD_MAX = 15;
 	}
 	public DynamicGinRummyPlayer(int knockThreshold) { //made for the sole purpose of testing knock algorithm, delete in final version
 		KNOCK_THRESHOLD = knockThreshold;
 		gameScores = new ArrayList<int[]>();
-		prevDiff = 0;
-		threshold_0 = KNOCK_THRESHOLD;
 	}
 	
 	@Override
@@ -670,11 +672,19 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		int diff = p0Diff - p1Diff;//difference includes bonus
 		diff = (playerNum == 0)? diff : -1*diff;
 		if (!(p0Diff == 0 && p1Diff == 0)) {//round was not a draw
-			if (opponentKnocked && diff >= 0) //opponent knocks and we undercut
-				KNOCK_THRESHOLD = knockf1(diff - GinRummyUtil.UNDERCUT_BONUS,false,0.1);
-			else if (!opponentKnocked && diff <= 0)  //we knock and opponent undercut
-				KNOCK_THRESHOLD = knockf1(diff,true,0.1);
-			else if (!opponentKnocked && diff >0) { //we knock and we win the round
+			if (opponentKnocked && diff >= 0 &&  zScore(roundNum,6.748983,2.700133) <= 1) { //opponent knocks and we undercut
+				int tempThreshold = knockf1(diff - GinRummyUtil.UNDERCUT_BONUS,false,0.1);
+				KNOCK_THRESHOLD = (tempThreshold > KNOCK_THRESHOLD_MAX)? KNOCK_THRESHOLD_MAX : tempThreshold;
+				threshold_0 = KNOCK_THRESHOLD;
+				prevDiff = diff;
+			}else if (!opponentKnocked && diff <= 0 && zScore(roundNum,6.748983,2.700133) <= 1) {  //we knock and opponent undercut
+				int	tempThreshold = knockf1(diff,true,0.1);
+				KNOCK_THRESHOLD = (tempThreshold > KNOCK_THRESHOLD_MAX)? KNOCK_THRESHOLD_MAX : tempThreshold;
+				threshold_0 = KNOCK_THRESHOLD;
+				prevDiff = -1*diff;
+			}else if (!opponentKnocked && diff >0 && zScore(roundNum,6.748983,2.700133) <= 1) { //we knock and we win the round
+				if (deadWood == 0)
+					diff -= GinRummyUtil.GIN_BONUS;//remove the gin bonus
 				if (diff > prevDiff) {
 					threshold_0 = KNOCK_THRESHOLD;
 					KNOCK_THRESHOLD = knockf1(diff,true,0.1);
@@ -684,5 +694,9 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 				}
 			}
 		}
+	}
+	
+	public int getKnockThreshold() {
+		return KNOCK_THRESHOLD;
 	}
 }
