@@ -659,7 +659,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		if (weKnocked)
 			return (int)Math.round(KNOCK_THRESHOLD -a*diff);
 		else
-			return (int) Math.ceil(KNOCK_THRESHOLD + a*diff);
+			return (int) Math.round(KNOCK_THRESHOLD + a*diff);
 	}
 	
 	private int avg(int x, int y) { //arithmetic mean rounded to int
@@ -673,12 +673,12 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		diff = (playerNum == 0)? diff : -1*diff;
 		if (!(p0Diff == 0 && p1Diff == 0)) {//round was not a draw
 			if (opponentKnocked && diff >= 0 &&  zScore(roundNum,6.748983,2.700133) <= 1) { //opponent knocks and we undercut
-				int tempThreshold = knockf1(diff - GinRummyUtil.UNDERCUT_BONUS,false,0.1);
+				int tempThreshold = knockf1(diff - GinRummyUtil.UNDERCUT_BONUS,false,aValue(KNOCK_THRESHOLD));
 				KNOCK_THRESHOLD = (tempThreshold > KNOCK_THRESHOLD_MAX)? KNOCK_THRESHOLD_MAX : tempThreshold;
 				threshold_0 = KNOCK_THRESHOLD;
 				prevDiff = diff;
 			}else if (!opponentKnocked && diff <= 0 && zScore(roundNum,6.748983,2.700133) <= 1) {  //we knock and opponent undercut
-				int	tempThreshold = knockf1(diff,true,0.1);
+				int	tempThreshold = knockf1(diff,true,aValue(KNOCK_THRESHOLD));
 				KNOCK_THRESHOLD = (tempThreshold > KNOCK_THRESHOLD_MAX)? KNOCK_THRESHOLD_MAX : tempThreshold;
 				threshold_0 = KNOCK_THRESHOLD;
 				prevDiff = -1*diff;
@@ -687,7 +687,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 					diff -= GinRummyUtil.GIN_BONUS;//remove the gin bonus
 				if (diff > prevDiff) {
 					threshold_0 = KNOCK_THRESHOLD;
-					KNOCK_THRESHOLD = knockf1(diff,true,0.1);
+					KNOCK_THRESHOLD = knockf1(diff,true,0.05);
 					prevDiff = diff;
 				}else { //overestimated the threshold and make it some type of average of its current state and previous state
 					KNOCK_THRESHOLD = avg(threshold_0,KNOCK_THRESHOLD);
@@ -698,5 +698,9 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	
 	public int getKnockThreshold() {
 		return KNOCK_THRESHOLD;
+	}
+	
+	private double aValue(double curThreshold) {
+		return Math.abs(0.5/curThreshold);
 	}
 }
