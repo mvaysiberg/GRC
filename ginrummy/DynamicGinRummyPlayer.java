@@ -705,7 +705,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	}*/
 	
 	private void dynamicKnock(int x, int y, int z, double c) {
-		int net = x + y -z;
+		int net = x + z -y;
 		if (net <= netThreshold_0) {
 			KNOCK_THRESHOLD = threshold_0;
 		}else {
@@ -722,6 +722,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 				threshold_0 = KNOCK_THRESHOLD;
 				KNOCK_THRESHOLD = knockf2(-1);
 			}
+			netThreshold_0 = net;
 		}
 	}
 	
