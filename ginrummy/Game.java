@@ -10,12 +10,13 @@ public class Game {
 		//System.out.println("THRESHOLD 10 vs THRESHOLD 9: " + play(new AdvancedGinRummyPlayer(10),new AdvancedGinRummyPlayer(9),100000));
 		//roundCsv("roundData.csv",new SimpleGinRummyPlayer(),500);
 		//System.out.println(play(new DynamicGinRummyPlayer(),new SimpleGinRummyPlayer(),100000));
-		try{
+		/*try{
 			FileWriter f = new FileWriter("deviationData.csv");
 			System.out.println(playDynamic(new DynamicGinRummyPlayer(), new AdvancedGinRummyPlayer(), 10000 , null));
 		}catch(Exception e) {
 			System.out.println(e);
-		}
+		}*/
+		System.out.println(playDynamic(new DynamicGinRummyPlayer(), new AdvancedGinRummyPlayer(), 10000, null));
 	}
 	
 	public static float play(GinRummyPlayer p0, GinRummyPlayer p1, int x) {
