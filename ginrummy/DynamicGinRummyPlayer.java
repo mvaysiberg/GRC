@@ -1,5 +1,6 @@
 package ginrummy;
 import java.util.ArrayList;
+import java.io.FileWriter;
 import java.math.*;
 import java.util.HashSet;
 
@@ -36,6 +37,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	private int X;
 	private int Y;
 	private int Z;
+	private FileWriter deviationWriter;
 	
 	public DynamicGinRummyPlayer() {
 		KNOCK_THRESHOLD = 9;
@@ -58,6 +60,20 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		X = 0;
 		Y = 0;
 		Z = 0;
+		deviationWriter = null;
+	}
+	
+	public DynamicGinRummyPlayer(FileWriter f) { //only for collecting deviation data
+		KNOCK_THRESHOLD = 9;
+		gameScores = new ArrayList<int[]>();
+		KNOCK_THRESHOLD_MAX = 15;
+		gameNum = 0;
+		threshold_0 = KNOCK_THRESHOLD;
+		netThreshold_0 = 0;
+		X = 0;
+		Y = 0;
+		Z = 0;
+		deviationWriter = f;
 	}
 	
 	@Override
@@ -706,12 +722,22 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	
 	private void dynamicKnock(int x, int y, int z, double c) {
 		int net = x + z -y;
+		int max = max(x,y,z);
+		double dev = deviation(x,y,z);
+		
+		if (deviationWriter != null) {
+			try {
+				deviationWriter.append(Double.toString(dev));
+				deviationWriter.append("\n");
+			}catch(Exception e) {
+				System.out.println(e);
+			}
+		}
+		
+		
 		if (net <= netThreshold_0) {
 			KNOCK_THRESHOLD = threshold_0;
 		}else {
-			int max = max(x,y,z);
-			double dev = deviation(x,y,z);
-			
 			if (x == max && dev >= c) {
 				threshold_0 = KNOCK_THRESHOLD;
 				KNOCK_THRESHOLD = knockf2(1);
