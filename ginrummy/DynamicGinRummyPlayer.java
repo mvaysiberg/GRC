@@ -36,8 +36,10 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	private int X;
 	private int Y;
 	private int Z;
+	private int W;
 	private FileWriter deviationWriter;
 	private HashMap<Integer, Double[]> netThresholds;
+	private boolean usedFirstAlg;
 	
 	public DynamicGinRummyPlayer() {
 		KNOCK_THRESHOLD = 9;
@@ -47,7 +49,9 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		X = 0;
 		Y = 0;
 		Z = 0;
+		W = 0;
 		netThresholds = new HashMap<Integer, Double[]>();
+		usedFirstAlg = false;
 	}
 	public DynamicGinRummyPlayer(int knockThreshold) { //made for the sole purpose of testing knock algorithm, delete in final version
 		KNOCK_THRESHOLD = knockThreshold;
@@ -57,8 +61,10 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		X = 0;
 		Y = 0;
 		Z = 0;
+		W = 0;
 		deviationWriter = null;
 		netThresholds = new HashMap<Integer, Double[]>();
+		usedFirstAlg = false;
 	}
 	
 	public DynamicGinRummyPlayer(FileWriter f) { //only for collecting deviation data
@@ -66,10 +72,13 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		gameScores = new ArrayList<int[]>();
 		KNOCK_THRESHOLD_MAX = 15;
 		gameNum = 0;
+		X = 0;
 		Y = 0;
 		Z = 0;
+		W = 0;
 		deviationWriter = f;
 		netThresholds = new HashMap<Integer, Double[]>();
+		usedFirstAlg = false;
 	}
 	
 	@Override
@@ -275,15 +284,17 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		if (opponentKnocked && diff > 0)
 			X += diff;
 		else if (!opponentKnocked && diff < 0)
-			Y += diff;
+			Y -= diff;
 		else if (!opponentKnocked && diff > 0)
 			Z += diff;
-		
-		if (gameNum % 10 == 0) {
-			dynamicKnock(X,Y,Z,15);
+		else if (opponentKnocked && diff < 0)
+			W -= diff;
+		if (gameNum % 10 == 0 && (X!= 0 || Y != 0 || Z != 0)) {
+			dynamicKnock(X,Y,Z,W,112);
 			X = 0;
 			Y = 0;
 			Z = 0;
+			W = 0;
 		}
 		prevRoundScore = scores;
 	}
@@ -717,8 +728,8 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		return (int)Math.round((double)(x + y)/2);
 	}*/
 	
-	private void dynamicKnock(int x, int y, int z, double c) {
-		int net = x + z -y; //net points
+	private void dynamicKnock(int x, int y, int z, int w, double c) {
+		int net = x + z -y - w; //net points
 		int max = max(x,y,z); //maximum of x, y, and z
 		double dev = deviation(x,y,z); //max - mean
 		if (!netThresholds.containsKey((Integer)KNOCK_THRESHOLD)) { //first time seeing this knock threshold
@@ -739,10 +750,20 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 			}
 		}
 		
+		
+		for (Integer i : netThresholds.keySet()) {
+			Double[] d = netThresholds.get(i);
+				System.out.print(i + ":[ " + d[0] + ", " + d[1] + " ] ");
+		}
+		System.out.println();
+		
+		
 		//try {
-		if ( netThresholds.size() > 1 && netThresholds.get(KNOCK_THRESHOLD)[0] < getLargestNet(netThresholds) ) { 
+		if ( netThresholds.size() > 1 && netThresholds.get(KNOCK_THRESHOLD)[0] <= getLargestNet(netThresholds) && !usedFirstAlg) { 
+			usedFirstAlg = true;
 			KNOCK_THRESHOLD = getLargestThreshold(netThresholds);
 		}else {
+			usedFirstAlg = false;
 			if (x == max && dev >= c) {
 				KNOCK_THRESHOLD = knockf2(1);
 			}else if (y == max) {
@@ -756,6 +777,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 			//	Double[] d = netThresholds.get(i);
 			//	System.out.print(i + ":[ " + d[0] + ", " + d[1] + " ] ");
 			//}
+			//System.out.println();
 		//}
 	}
 	
@@ -776,20 +798,22 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	}
 	
 	private int getLargestThreshold(HashMap<Integer,Double[]>h) {
-		double maxPoints = Double.MIN_VALUE; //temporary value that should never be returned
+		double maxPoints = Double.NEGATIVE_INFINITY; //temporary value that should never be returned
 		int maxThreshold = Integer.MIN_VALUE;//temporary value that should never be returned
 		
 		for (Integer threshold: h.keySet()) {
-			if (h.get(threshold)[0] > maxPoints) {
-				maxPoints = h.get(threshold)[0];
+			double points = h.get(threshold)[0];
+			if (points > maxPoints) {
+				maxPoints = points;
 				maxThreshold = threshold;
 			}
 		}
-		
+		//System.out.println(maxThreshold + " " + Integer.MIN_VALUE + " " + maxPoints + " " + Double.MIN_VALUE);
 		return maxThreshold;
 	}
 	
 	private double getLargestNet(HashMap<Integer,Double[]>h) {
+		//System.out.println(h.toString());
 		return h.get(getLargestThreshold(h))[0];
 	}
 }
