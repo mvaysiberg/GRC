@@ -504,9 +504,15 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		for (Card c: unseenPredictions) {
 			insertSorted(c, tempOpponentHand);
 		}
-		
+		HashSet<Card> priorityCards = new HashSet<Card>();
+		updateWantCards(tempOpponentHand, priorityCards, null, null, null, null, null);
+		ArrayList<Card> priorityMatch = new ArrayList<Card>();
+		for (Card c: priorityCards) {
+			if (!arrayContains(hand, c))
+				insertSorted(c,priorityMatch);
+		}
 		//System.out.println("hand" + opponentHand.toString());
-		//System.out.println("prediction" + predictions.toString());
+		//System.out.println("prediction" + tempOpponentHand.toString());
 		
 		//handle case when we gin
 		if (potentialDiscards.isEmpty() &&  deadWood == 0) { //size == 11 is redundant as we will automatically knock when gin, but added for clarity
@@ -540,13 +546,13 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		int dIndex = dead.size() -1;
 		
 		while (pIndex >= 0) { //find the greatest potential set/run that does not match the opponent's hand
-			if (!matches(potentials.get(pIndex),opponentHand))
+			if (!matches(potentials.get(pIndex),opponentHand, priorityMatch))
 				break;
 			--pIndex;
 		}
 		
 		while (dIndex >= 0) { //find the greatest dead deadwood that does not match the opponent's hand
-			if (!matches(dead.get(dIndex),opponentHand))
+			if (!matches(dead.get(dIndex),opponentHand, priorityMatch))
 				break;
 			--dIndex;
 		}
@@ -661,8 +667,8 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	
 	
 	
-	private boolean matches(Card c, ArrayList<Card> h) { //check if a card is a match to a hand
-		if (hashSetContains(safeCards(h), c)) //if a card is safe then it cannot match the opponent's hand
+	private boolean matches(Card c, ArrayList<Card> h, ArrayList<Card> p) { //check if a card is a match to a hand
+		if (hashSetContains(safeCards(h), c) || arrayContains(p, c)) //if a card is safe then it cannot match the opponent's hand
 			return false;
 		for (Card handCard :  h) { 
 			if (handCard.rank == c.rank) //check for sets
@@ -848,5 +854,13 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 			}
 		}
 		return unseen;
+	}
+	
+	private boolean arrayContains(ArrayList<Card> a, Card c) {
+		for (Card check: a) {
+			if (compareCards(check, c))
+				return true;
+		}
+		return false;
 	}
 }
