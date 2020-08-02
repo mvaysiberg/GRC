@@ -99,8 +99,8 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		roundNum = 0;
 		lastDrawnCard = null;
 		opponentHand = new ArrayList<Card>();
-		updateMeldsDeadWood();
-		updateWantCards(hand);
+		updateMeldsDeadWood(hand);
+		updateWantCards(hand, wantCards, potentialSet, potentialHardSet, potentialRun, potentialHardRun,sets);
 		opponentKnocked = false;
 		prevRoundScore = new int[]{0,0};
 	}
@@ -108,8 +108,8 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	@Override
 	public boolean willDrawFaceUpCard(Card card) {
 		// TODO Auto-generated method stub
-		updateMeldsDeadWood();
-		updateWantCards(hand);
+		updateMeldsDeadWood(hand);
+		updateWantCards(hand, wantCards, potentialSet, potentialHardSet, potentialRun, potentialHardRun, sets);
 		lastDrawnCard = null;
 		//logic to decide whether to take the card from the discarded set
 		if (!seenCards.contains(card)) //first turn
@@ -123,7 +123,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		ArrayList<Card> tempHand = new ArrayList<Card>(hand);
 		insertSorted(card,tempHand);
 		lastDrawnCard = card; //pretend that we drew the card for the sake of the algorithm
-		updateWantCards(tempHand);//this will be undone after report draw anyway
+		updateWantCards(tempHand, wantCards, potentialSet, potentialHardSet, potentialRun, potentialHardRun, sets);//this will be undone after report draw anyway
 		Card willDiscard = discard(tempHand);
 		lastDrawnCard = null;
 		if (deadWood <= 26) {
@@ -154,14 +154,14 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	@Override
 	public void reportDraw(int playerNum, Card drawnCard) {
 		// TODO Auto-generated method stub
-		if (drawnCard != null && !seenCards.contains(drawnCard))
+		if (drawnCard != null && !hashSetContains(seenCards,drawnCard))
 			seenCards.add(drawnCard);
 		if (playerNum == this.playerNum) { //Reports what we drew
 			lastDrawnCard = drawnCard;
 			//drawncard is inserted into hand in the proper sorted position
 			insertSorted(drawnCard,hand);
-			updateMeldsDeadWood();
-			updateWantCards(hand);
+			updateMeldsDeadWood(hand);
+			updateWantCards(hand, wantCards, potentialSet, potentialHardSet, potentialRun, potentialHardRun, sets);
 		}else {
 			if (drawnCard == null) { //opponent drew from random set, no knowledge of what the card is
 				randomSetSize--;
@@ -177,8 +177,8 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		//choose which card to discard, cannot be lastDrawnCard
 		Card ret = discard(hand);
 		hand.remove(ret);
-		updateMeldsDeadWood();
-		updateWantCards(hand);
+		updateMeldsDeadWood(hand);
+		updateWantCards(hand, wantCards, potentialSet, potentialHardSet, potentialRun, potentialHardRun, sets);
 		return ret;
 	}
 
@@ -289,8 +289,8 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 			Z += diff;
 		else if (opponentKnocked && diff < 0)
 			W -= diff;
-		if (gameNum % 10 == 0 && (X!= 0 || Y != 0 || Z != 0)) {
-			dynamicKnock(X,Y,Z,W,116);
+		if (gameNum % 30 == 0 && (X!= 0 || Y != 0 || Z != 0)) {
+			dynamicKnock(X,Y,Z,W,348);
 			X = 0;
 			Y = 0;
 			Z = 0;
@@ -332,13 +332,13 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 					a.add(middle,c);
 		}
 	}
-	private void updateMeldsDeadWood() {
+	private void updateMeldsDeadWood(ArrayList<Card> h) {
 		sets = new HashSet<Card>();
-		bestMelds = GinRummyUtil.cardsToBestMeldSets(hand);
+		bestMelds = GinRummyUtil.cardsToBestMeldSets(h);
 		if (bestMelds.isEmpty())
-			deadWood = GinRummyUtil.getDeadwoodPoints(hand);
+			deadWood = GinRummyUtil.getDeadwoodPoints(h);
 		else {
-			deadWood = GinRummyUtil.getDeadwoodPoints(bestMelds.get(0), hand);
+			deadWood = GinRummyUtil.getDeadwoodPoints(bestMelds.get(0), h);
 			for (ArrayList<ArrayList<Card>> melds: bestMelds) {
 				for (ArrayList<Card> meld: melds) {
 					if (isSet(meld)) {
@@ -352,10 +352,10 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		}
 	}
 	
-	private void updateWantCards(ArrayList<Card> h) {
-		wantCards = new HashSet<Card>();
-		potentialSet = new  HashSet<Card>();
-		potentialHardSet = new HashSet<Card>();
+	private void updateWantCards(ArrayList<Card> h, HashSet<Card> wc, HashSet<Card> ps, HashSet<Card> phs, HashSet<Card> pr, HashSet<Card> phr, HashSet<Card> s) {
+		wc = new HashSet<Card>();
+		ps = new  HashSet<Card>();
+		phs = new HashSet<Card>();
 		for (int i = 0; i < h.size(); ++i) { //this for loop calculates what cards we want to add to sets (if we have 2 or 3 cards of the same rank, look for the last 1 or 2)
 			int cardNum = h.get(i).rank;
 			int count = 0;
@@ -368,43 +368,43 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 			ArrayList<Card> possibleS = new ArrayList<Card>();
 			if (count == 2 || count == 3) {
 				if (!suits.contains(0)) {
-					wantCards.add(new Card(cardNum,0));
+					wc.add(new Card(cardNum,0));
 					possibleS.add(new Card(cardNum,0));
 				}if (!suits.contains(1)) {
-					wantCards.add(new Card(cardNum,1));
+					wc.add(new Card(cardNum,1));
 					possibleS.add(new Card(cardNum,1));
 				}if (!suits.contains(2)) {
-					wantCards.add(new Card(cardNum,2));
+					wc.add(new Card(cardNum,2));
 					possibleS.add(new Card(cardNum,2));
 				}if (!suits.contains(3)) {
-					wantCards.add(new Card(cardNum,3));
+					wc.add(new Card(cardNum,3));
 					possibleS.add(new Card(cardNum,3));
 				}
 			}
 			if (count == 2 && isPossibleMeld(possibleS)) {
 				for (Integer suit: suits) {
-					if (!hashSetContains(potentialSet,new Card(cardNum,suit)))
-						potentialSet.add(new Card(cardNum,suit));
+					if (!hashSetContains(ps,new Card(cardNum,suit)))
+						ps.add(new Card(cardNum,suit));
 					if (isHardMeld(possibleS))//create another condition for normal set once discard logic is added
-						potentialHardSet.add(new Card(cardNum,suit));
+						phs.add(new Card(cardNum,suit));
 				}
 			}
 			i--;
 		}
 		ArrayList<Card> newHand = new ArrayList<Card>(); //create a new hand without sets so that avoid trying to form runs with current sets
 		for (Card c: h) {
-			if (!hashSetContains(sets,c))
+			if (!hashSetContains(s,c))
 				newHand.add(c);
 		}
-		potentialRun = new HashSet<Card>();
-		potentialHardRun = new HashSet<Card>();
+		pr = new HashSet<Card>();
+		phr = new HashSet<Card>();
 		for (int i = 0; i < newHand.size(); ++i) { //this for loop calculates what cards we want to add to runs or form runs
 			int suit = newHand.get(i).suit;
 			int startingRank = newHand.get(i).rank;
 			int x = i;
 			int count = 0;
 			ArrayList<Integer> ranks = new ArrayList<Integer>();
-			if (hashSetContains(potentialRun,newHand.get(i))) //do not double count the same potential run
+			if (hashSetContains(pr,newHand.get(i))) //do not double count the same potential run
 				continue;
 			while (x < newHand.size() && (newHand.get(x).rank == startingRank || newHand.get(x).rank == startingRank + 1)) {
 				if (ranks.isEmpty()) {
@@ -422,16 +422,16 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 			if (count >= 2) {
 				ArrayList<Card> possibleR = new ArrayList<Card>();
 				if (ranks.get(0) != 0) {//the minimal card in a run is an ace
-					wantCards.add(new Card(ranks.get(0)-1,suit));
+					wc.add(new Card(ranks.get(0)-1,suit));
 					possibleR.add(new Card(ranks.get(0)-1,suit));
 				}if (ranks.get(ranks.size() -1) != 12) { //the maximal card in a run is a king
-					wantCards.add(new Card(ranks.get(ranks.size()-1)+1,suit));
+					wc.add(new Card(ranks.get(ranks.size()-1)+1,suit));
 					possibleR.add(new Card(ranks.get(ranks.size()-1)+1,suit));
 				}if (count == 2 && isPossibleMeld(possibleR)) {
 					for (Integer rank: ranks) {
-						potentialRun.add(new Card(rank,suit));
+						pr.add(new Card(rank,suit));
 						if (isHardMeld(possibleR)) //create another condition for normal run once discard logic is added
-							potentialHardRun.add(new Card(rank,suit));
+							phr.add(new Card(rank,suit));
 					}
 					//++numPotentials; //this is a potential run
 				}
@@ -442,10 +442,10 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 					if (compareCards(newHand.get(x), new Card(startingRank +2,suit))) {
 						wantCards.add(new Card(startingRank + 1, suit));
 						if (!hashSetContains(seenCards,new Card(startingRank+1,suit))) {
-							potentialRun.add(new Card(startingRank,suit)); //can comment out these lines once added new logic in discard algorithm
-							potentialRun.add(new Card(startingRank + 2, suit));//
-							potentialHardRun.add(new Card(startingRank,suit));
-							potentialHardRun.add(new Card(startingRank + 2, suit));
+							pr.add(new Card(startingRank,suit)); //can comment out these lines once added new logic in discard algorithm
+							pr.add(new Card(startingRank + 2, suit));//
+							phr.add(new Card(startingRank,suit));
+							phr.add(new Card(startingRank + 2, suit));
 						}
 						//++numPotentials; //this is a potential run 
 						break;
@@ -469,7 +469,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		return potentialRun;
 	}
 	private Card discard(ArrayList<Card> h) { //gets card to discard from current hand
-		updateMeldsDeadWood();
+		updateMeldsDeadWood(hand);
 		ArrayList<Card> potentialDiscards = new ArrayList<Card>();
 		for (Card handcard: h) {
 			boolean inMeld = false;
@@ -483,6 +483,15 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 			}
 			if (!inMeld && (!tookFaceup ||lastDrawnCard == null || !compareCards(lastDrawnCard,handcard)))
 				potentialDiscards.add(handcard); //do not remove a card if it is in a set/run or if it is the last drawn card
+		}
+		//matching algorithm
+		
+		HashSet<Card> predictions = new HashSet<Card>();
+		updateWantCards(opponentHand, predictions, null, null, null, null, null);
+		ArrayList<Card> unseenPredictions = checkSeen(predictions);
+		ArrayList<Card> tempOpponentHand = new ArrayList<Card>(opponentHand);
+		for (Card c: unseenPredictions) {
+			insertSorted(c, tempOpponentHand);
 		}
 		
 		//handle case when we gin
@@ -815,5 +824,15 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	private double getLargestNet(HashMap<Integer,Double[]>h) {
 		//System.out.println(h.toString());
 		return h.get(getLargestThreshold(h))[0];
+	}
+	
+	private ArrayList<Card> checkSeen(HashSet<Card> h){
+		ArrayList<Card> unseen = new ArrayList<Card>();
+		for (Card c: h) {
+			if (!hashSetContains(seenCards, c)) {
+				insertSorted(c, unseen);
+			}
+		}
+		return unseen;
 	}
 }
