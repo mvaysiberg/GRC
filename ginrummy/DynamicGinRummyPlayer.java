@@ -511,6 +511,8 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 			if (!arrayContains(hand, c))
 				insertSorted(c,priorityMatch);
 		}
+		int priorityIndex = priorityMatch.size() -1;
+		
 		//System.out.println("hand" + opponentHand.toString());
 		//System.out.println("prediction" + tempOpponentHand.toString());
 		
@@ -602,8 +604,8 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		//
 		int maxMatched = (maxMatchedDwood > maxMatchedPotentials)? maxMatchedDwood : maxMatchedPotentials;
 		int maxUnmatched = (maxUnmatchedDwood > maxUnmatchedPotentials) ? maxUnmatchedDwood : maxUnmatchedPotentials;
-		
-		if (maxMatched - maxUnmatched >= 7 || maxUnmatched == -1) {
+		int maxPriority = priorityIndex >= 0? GinRummyUtil.getDeadwoodPoints(priorityMatch.get(priorityIndex)) : -1;
+		if (maxMatched - maxUnmatched >= 5 || maxUnmatched == -1) {
 			/*if (deadlist.isEmpty() && meldlist.isEmpty()) {
 				System.out.println(lastDrawnCard);
 				System.out.println(potentialDiscards);
@@ -611,7 +613,9 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 				System.out.println(hand);
 			}*/
 			 return (maxMatchedDwood >= maxMatchedPotentials && !deadlist.isEmpty())? deadlist.get(0): meldlist.get(0);
-		} else {
+		}else if (maxPriority - maxUnmatched >= 7 && maxPriority != -1) {
+			return priorityMatch.get(priorityIndex);
+		}else {
 			if (maxUnmatchedDwood >= 6)
 				return dead.get(dIndex);
 			else if (maxUnmatchedPotentials >= 6)
