@@ -14,6 +14,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	private int roundNum;
 	private ArrayList<Card> hand;
 	private ArrayList<Card> opponentHand;
+	private HashSet<Card> opponentPredictions;
 	private HashSet<Card> seenCards;
 	private Card lastDrawnCard;
 	private boolean tookFaceup;
@@ -497,9 +498,9 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		}
 		//matching algorithm
 		
-		HashSet<Card> predictions = new HashSet<Card>();
-		updateWantCards(opponentHand, predictions, null, null, null, null, null);
-		ArrayList<Card> unseenPredictions = checkSeen(predictions);
+		opponentPredictions = new HashSet<Card>();
+		updateWantCards(opponentHand, opponentPredictions, null, null, null, null, null);
+		ArrayList<Card> unseenPredictions = checkSeen(opponentPredictions);
 		ArrayList<Card> tempOpponentHand = new ArrayList<Card>(opponentHand);
 		for (Card c: unseenPredictions) {
 			insertSorted(c, tempOpponentHand);
@@ -724,7 +725,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	private boolean isPossibleMeld(ArrayList<Card> wantMeld){
 		int matchNum = 0;
 		for (Card c: wantMeld) {
-			if (hashSetContains(seenCards,c))
+			if (hashSetContains(seenCards,c) || hashSetContains(opponentPredictions, c))
 				++matchNum;
 		}
 		return matchNum <2;
@@ -733,7 +734,7 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 	private boolean isHardMeld(ArrayList<Card> wantMeld) {
 		int matchNum = 0;
 		for (Card c: wantMeld) {
-			if (hashSetContains(seenCards, c))
+			if (hashSetContains(seenCards, c) || hashSetContains(opponentPredictions,c))
 				++matchNum;
 		}
 		return matchNum == 1;
