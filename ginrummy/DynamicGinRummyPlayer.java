@@ -296,8 +296,8 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 			Z += diff;
 		else if (opponentKnocked && diff < 0)
 			W -= diff;
-		if (gameNum % 30 == 0 && (X!= 0 || Y != 0 || Z != 0)) {
-			dynamicKnock(X,Y,Z,W,348);
+		if (gameNum % 17 == 0 && (X!= 0 || Y != 0 || Z != 0)) {
+			dynamicKnock(X,Y,Z,W,200);
 			X = 0;
 			Y = 0;
 			Z = 0;
