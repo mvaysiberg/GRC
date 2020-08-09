@@ -1,4 +1,4 @@
-<<<<<<< HEAD:eaai/ginrummy/GinRummyGame.java
+
 package ginrummy;
 
 import java.util.ArrayList;

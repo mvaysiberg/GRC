@@ -1,4 +1,4 @@
-<<<<<<< HEAD:eaai/ginrummy/GinRummyUtil.java
+
 package ginrummy;
 
 
