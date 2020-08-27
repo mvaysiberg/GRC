@@ -1,5 +1,6 @@
 package ginrummy;
 import java.io.FileWriter;
+import java.util.HashMap;
 
 public class Game {
 
@@ -16,7 +17,7 @@ public class Game {
 		}catch(Exception e) {
 			System.out.println(e);
 		}*/
-		System.out.println(playDynamic(new DynamicGinRummyPlayer(), new SimpleGinRummyPlayer(), 10000, null));
+		System.out.println(playDynamic(new DynamicGinRummyPlayer(), new SimpleGinRummyPlayer(), 100000, null));
 	}
 	
 	public static float play(GinRummyPlayer p0, GinRummyPlayer p1, int x) {
@@ -47,6 +48,12 @@ public class Game {
 		}
 		
 		System.out.println("Threshold: " + d.getKnockThreshold());
+		HashMap<Integer, Double[]> netThresholds = d.getThresholds();
+		for (Integer i : netThresholds.keySet()) {
+				Double[] dou = netThresholds.get(i);
+				System.out.print(i + ":[ " + dou[0] + ", " + dou[1] + " ] ");
+			}
+			System.out.println();
 		return total;
 		
 	}
