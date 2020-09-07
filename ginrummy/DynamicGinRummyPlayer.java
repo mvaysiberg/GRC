@@ -784,11 +784,11 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 		}
 		
 		
-		for (Integer i : netThresholds.keySet()) {
-			Double[] d = netThresholds.get(i);
-				System.out.print(i + ":[ " + d[0] + ", " + d[1] + " ] ");
-		}
-		System.out.println();
+		//for (Integer i : netThresholds.keySet()) {
+			//Double[] d = netThresholds.get(i);
+			//	System.out.print(i + ":[ " + d[0] + ", " + d[1] + " ] ");
+		//}
+		//System.out.println();
 		
 		
 		//try {
@@ -866,5 +866,9 @@ public class DynamicGinRummyPlayer implements GinRummyPlayer{
 				return true;
 		}
 		return false;
+	}
+	
+	public HashMap<Integer, Double[]> getThresholds(){
+		return netThresholds;
 	}
 }
